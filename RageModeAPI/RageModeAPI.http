@@ -1,0 +1,6 @@
+@RageModeAPI_HostAddress = http://localhost:5038
+
+GET {{RageModeAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
