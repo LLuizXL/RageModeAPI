@@ -19,6 +19,12 @@ namespace RageModeAPI.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<Personagem>().ToTable("Personagens");
             modelBuilder.Entity<TipoPersonagem>().ToTable("TiposPersonagens");
+            modelBuilder.Entity<Jogos>().ToTable("Jogos");
+            modelBuilder.Entity<Post>().ToTable("Postagem");
+            modelBuilder.Entity<Comentarios>().ToTable("Comentarios");
+            modelBuilder.Entity<Usuarios>().ToTable("Usuarios");
+
+
         }
     }
 }
