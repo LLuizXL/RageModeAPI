@@ -1,4 +1,6 @@
-﻿namespace RageModeAPI.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace RageModeAPI.Models
 {
     public class Post
     {
@@ -18,6 +20,14 @@
         public Jogos? Jogo { get; set; }
         public Guid PersonagemId { get; set; }
         public Personagem? Personagem { get; set; }
+        public ICollection<Likes> Likes { get; set; }
+        public ICollection<Comentarios> Comentarios { get; set; }
+
+        [NotMapped]
+        public int LikeCount => Likes?.Count ?? 0; // Calcula o número de likes
+
+        [NotMapped]
+        public int CommentCount => Comentarios?.Count ?? 0; // Calcula o número de comentários
 
 
     }
