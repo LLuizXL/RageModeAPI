@@ -29,6 +29,7 @@ namespace RageModeAPI.Data
             modelBuilder.Entity<Post>().ToTable("Postagem");
             modelBuilder.Entity<Comentarios>().ToTable("Comentarios");
             modelBuilder.Entity<Usuarios>().ToTable("Usuarios");
+            modelBuilder.Entity<Likes>().ToTable("Likes");
 
             // Configuração dos relacionamentos de Follow
             modelBuilder.Entity<Seguidores>()
@@ -42,6 +43,18 @@ namespace RageModeAPI.Data
                 .WithMany(u => u.Seguidores)
                 .HasForeignKey(f => f.SeguidoId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // Configuração dos relacionamentos de Like
+            modelBuilder.Entity<Likes>()
+                .HasOne(l => l.Usuarios)
+                .WithMany(u => u.Likes)
+                .HasForeignKey(l => l.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Likes>()
+                .HasOne(l => l.Post)
+                .WithMany(p => p.Likes)
+                .HasForeignKey(l => l.PostId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
         }

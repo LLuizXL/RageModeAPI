@@ -8,5 +8,9 @@
         //Chave Estrangeira Usuario
         public Guid UsuarioId { get; set; }
         public Usuarios? Usuario { get; set; }
+
+        //Chave Estrangeira Post
+        public Guid PostId { get; set; }
+        public Post? Post { get; set; }
     }
 }
