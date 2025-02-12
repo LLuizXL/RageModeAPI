@@ -2,7 +2,7 @@
 {
     public class Comentarios
     {
-        public Guid ComentarioId { get; set; }
+        public Guid ComentariosId { get; set; }
         public string ComentarioTexto { get; set; }
         public DateTime DataComentario { get; set; }
         //Chave Estrangeira Usuario
