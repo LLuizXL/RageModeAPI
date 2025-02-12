@@ -11,8 +11,14 @@ namespace RageModeAPI.Data
         {
         }
 
+        public DbSet<Jogos> Jogos { get; set; }
         public DbSet<Personagem> Personagens { get; set; }
         public DbSet<TipoPersonagem> TiposPersonagens { get; set; }
+        public DbSet<Comentarios> Comentarios { get; set; }
+        public DbSet<Usuarios> Usuarios { get; set; }
+        public DbSet<Seguidores> Seguidores { get; set; }
+        public DbSet<Post> Posts { get; set; }
+        public DbSet<Likes> Likes { get; set; }
         //Sobrescrever o método OnModelCreating
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -23,6 +29,19 @@ namespace RageModeAPI.Data
             modelBuilder.Entity<Post>().ToTable("Postagem");
             modelBuilder.Entity<Comentarios>().ToTable("Comentarios");
             modelBuilder.Entity<Usuarios>().ToTable("Usuarios");
+
+            // Configuração dos relacionamentos de Follow
+            modelBuilder.Entity<Seguidores>()
+                .HasOne(f => f.Usuario)
+                .WithMany(u => u.Seguindo)
+                .HasForeignKey(f => f.UsuarioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Seguidores>()
+                .HasOne(f => f.Seguido)
+                .WithMany(u => u.Seguidores)
+                .HasForeignKey(f => f.SeguidoId)
+                .OnDelete(DeleteBehavior.Restrict);
 
 
         }
