@@ -8,6 +8,10 @@
 
         //Chave Estrangeira TipoPersonagem
         public Guid TipoPersonagemId { get; set; }
-        public TipoPersonagem TipoPersonagem { get; set; }
+        public TipoPersonagem? TipoPersonagem { get; set; }
+
+        //Chave Estrangeira Jogo
+        public Guid JogoId { get; set; }
+        public Jogos? Jogo { get; set; }
     }
 }

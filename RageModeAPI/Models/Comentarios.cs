@@ -7,6 +7,6 @@
         public DateTime DataComentario { get; set; }
         //Chave Estrangeira Usuario
         public Guid UsuarioId { get; set; }
-        public Usuarios Usuario { get; set; }
+        public Usuarios? Usuario { get; set; }
     }
 }
