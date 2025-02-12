@@ -2,7 +2,7 @@
 {
     public class Seguidores
     {
-        public Guid SeguirId { get; set; }
+        public Guid SeguidoresId { get; set; }
 
         //Chave Estrangeira Usuario
         public Guid UsuarioId { get; set; }
