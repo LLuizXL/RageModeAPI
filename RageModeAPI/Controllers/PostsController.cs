@@ -43,7 +43,6 @@ namespace RageModeAPI.Controllers
         }
 
         // PUT: api/Posts/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPost(Guid id, Post post)
         {
@@ -74,7 +73,6 @@ namespace RageModeAPI.Controllers
         }
 
         // POST: api/Posts
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Post>> PostPost(Post post)
         {
@@ -95,6 +93,56 @@ namespace RageModeAPI.Controllers
             }
 
             _context.Posts.Remove(post);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // POST: api/Posts/{postId}/like
+        [HttpPost("{postId}/like")]
+        public async Task<IActionResult> LikePost(Guid postId, [FromBody] bool like)
+        {
+            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            var existingLike = await _context.Likes
+                .FirstOrDefaultAsync(l => l.PostId == postId && l.UsuariosId == userId);
+
+            if (existingLike != null)
+            {
+                existingLike.LikeorNot = like;
+                _context.Entry(existingLike).State = EntityState.Modified;
+            }
+            else
+            {
+                var newLike = new Likes
+                {
+                    LikesId = Guid.NewGuid(),
+                    LikeorNot = like,
+                    UsuariosId = userId,
+                    PostId = postId
+                };
+                _context.Likes.Add(newLike);
+            }
+
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
+        // DELETE: api/Posts/{postId}/like
+        [HttpDelete("{postId}/like")]
+        public async Task<IActionResult> UnlikePost(Guid postId)
+        {
+            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            var existingLike = await _context.Likes
+                .FirstOrDefaultAsync(l => l.PostId == postId && l.UsuariosId == userId);
+
+            if (existingLike == null)
+            {
+                return NotFound();
+            }
+
+            _context.Likes.Remove(existingLike);
             await _context.SaveChangesAsync();
 
             return NoContent();
