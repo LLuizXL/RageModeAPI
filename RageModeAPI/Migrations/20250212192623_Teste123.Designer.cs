@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RageModeAPI.Data;
 
@@ -11,9 +12,11 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    partial class RageModeApiContextModelSnapshot : ModelSnapshot
+    [Migration("20250212192623_Teste123")]
+    partial class Teste123
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -332,6 +335,9 @@ namespace RageModeAPI.Migrations
                     b.Property<DateTime>("DataPostagem")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid>("JogoId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("PersonagemId")
                         .HasColumnType("uniqueidentifier");
 
@@ -350,14 +356,13 @@ namespace RageModeAPI.Migrations
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("UsuariosId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("PostId");
+
+                    b.HasIndex("JogoId");
 
                     b.HasIndex("PersonagemId");
 
-                    b.HasIndex("UsuariosId");
+                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Postagem", (string)null);
                 });
@@ -534,19 +539,29 @@ namespace RageModeAPI.Migrations
 
             modelBuilder.Entity("RageModeAPI.Models.Post", b =>
                 {
+                    b.HasOne("RageModeAPI.Models.Jogos", "Jogo")
+                        .WithMany()
+                        .HasForeignKey("JogoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("RageModeAPI.Models.Personagem", "Personagem")
                         .WithMany()
                         .HasForeignKey("PersonagemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RageModeAPI.Models.Usuarios", "Usuarios")
+                    b.HasOne("RageModeAPI.Models.Usuarios", "Usuario")
                         .WithMany("Posts")
-                        .HasForeignKey("UsuariosId");
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Jogo");
 
                     b.Navigation("Personagem");
 
-                    b.Navigation("Usuarios");
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("RageModeAPI.Models.Seguidores", b =>

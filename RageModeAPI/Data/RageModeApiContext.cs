@@ -47,7 +47,7 @@ namespace RageModeAPI.Data
             modelBuilder.Entity<Likes>()
                 .HasOne(l => l.Usuarios)
                 .WithMany(u => u.Likes)
-                .HasForeignKey(l => l.UsuarioId)
+                .HasForeignKey(l => l.UsuariosId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Likes>()
