@@ -380,7 +380,7 @@ namespace RageModeAPI.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Seguidores");
+                    b.ToTable("Seguidores", (string)null);
                 });
 
             modelBuilder.Entity("RageModeAPI.Models.TipoPersonagem", b =>

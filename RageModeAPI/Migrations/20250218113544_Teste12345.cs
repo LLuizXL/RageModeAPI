@@ -5,7 +5,7 @@
 namespace RageModeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class parte5 : Migration
+    public partial class Teste12345 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -12,8 +12,8 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    [Migration("20250212193609_parte6")]
-    partial class parte6
+    [Migration("20250218113544_Teste12345")]
+    partial class Teste12345
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -303,7 +303,7 @@ namespace RageModeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("JogosId")
+                    b.Property<Guid>("JogoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("PersonagemDescricao")
@@ -319,7 +319,7 @@ namespace RageModeAPI.Migrations
 
                     b.HasKey("PersonagemId");
 
-                    b.HasIndex("JogosId");
+                    b.HasIndex("JogoId");
 
                     b.HasIndex("TipoPersonagemId");
 
@@ -334,9 +334,6 @@ namespace RageModeAPI.Migrations
 
                     b.Property<DateTime>("DataPostagem")
                         .HasColumnType("datetime2");
-
-                    b.Property<Guid>("JogoId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PersonagemId")
                         .HasColumnType("uniqueidentifier");
@@ -356,13 +353,14 @@ namespace RageModeAPI.Migrations
                     b.Property<Guid>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("PostId");
+                    b.Property<Guid?>("UsuariosId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.HasIndex("JogoId");
+                    b.HasKey("PostId");
 
                     b.HasIndex("PersonagemId");
 
-                    b.HasIndex("UsuarioId");
+                    b.HasIndex("UsuariosId");
 
                     b.ToTable("Postagem", (string)null);
                 });
@@ -521,9 +519,9 @@ namespace RageModeAPI.Migrations
             modelBuilder.Entity("RageModeAPI.Models.Personagem", b =>
                 {
                     b.HasOne("RageModeAPI.Models.Jogos", "Jogo")
-                        .WithMany("Personagens")
-                        .HasForeignKey("JogosId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .WithMany()
+                        .HasForeignKey("JogoId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("RageModeAPI.Models.TipoPersonagem", "TipoPersonagem")
@@ -539,29 +537,19 @@ namespace RageModeAPI.Migrations
 
             modelBuilder.Entity("RageModeAPI.Models.Post", b =>
                 {
-                    b.HasOne("RageModeAPI.Models.Jogos", "Jogo")
-                        .WithMany()
-                        .HasForeignKey("JogoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("RageModeAPI.Models.Personagem", "Personagem")
                         .WithMany()
                         .HasForeignKey("PersonagemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("RageModeAPI.Models.Usuarios", "Usuario")
+                    b.HasOne("RageModeAPI.Models.Usuarios", "Usuarios")
                         .WithMany("Posts")
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Jogo");
+                        .HasForeignKey("UsuariosId");
 
                     b.Navigation("Personagem");
 
-                    b.Navigation("Usuario");
+                    b.Navigation("Usuarios");
                 });
 
             modelBuilder.Entity("RageModeAPI.Models.Seguidores", b =>
@@ -581,11 +569,6 @@ namespace RageModeAPI.Migrations
                     b.Navigation("Seguido");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("RageModeAPI.Models.Jogos", b =>
-                {
-                    b.Navigation("Personagens");
                 });
 
             modelBuilder.Entity("RageModeAPI.Models.Post", b =>
