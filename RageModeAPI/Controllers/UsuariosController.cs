@@ -78,6 +78,10 @@ namespace RageModeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuarios>> PostUsuarios(Usuarios usuarios)
         {
+            //Pegar o Id do Usuario Logado
+            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            usuarios.UsuariosId = userId;
+
             _context.Usuarios.Add(usuarios);
             await _context.SaveChangesAsync();
 
