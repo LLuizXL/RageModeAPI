@@ -72,7 +72,53 @@ namespace RageModeAPI.Controllers
 
             return NoContent();
         }
+        // GET: api/Usuarios/{userId}/followers/count
+        [HttpGet("{userId}/followers/count")]
+        public async Task<ActionResult<int>> GetFollowerCount(Guid userId)
+        {
+            var user = await _context.Usuarios
+                .Include(u => u.Seguidores)
+                .FirstOrDefaultAsync(u => u.UsuariosId == userId);
 
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            return user.FollowerCount;
+        }
+
+        // POST: api/Usuarios/{userId}/follow
+        [HttpPost("{userId}/follow")]
+        public async Task<IActionResult> FollowUser(Guid userId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            if (currentUserId == userId)
+            {
+                return BadRequest("Você não pode seguir a si mesmo.");
+            }
+
+            var existingFollow = await _context.Seguidores
+                .FirstOrDefaultAsync(f => f.UsuarioId == currentUserId && f.SeguidoId == userId);
+
+            if (existingFollow != null)
+            {
+                return BadRequest("Você já está seguindo este usuário.");
+            }
+
+            var newFollow = new Seguidores
+            {
+                SeguidoresId = Guid.NewGuid(),
+                UsuarioId = currentUserId,
+                SeguidoId = userId
+            };
+
+            _context.Seguidores.Add(newFollow);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
         // POST: api/Usuarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]

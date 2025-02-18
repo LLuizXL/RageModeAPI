@@ -17,8 +17,8 @@ namespace RageModeAPI.Models
 
         public Guid PersonagemId { get; set; }
         public Personagem? Personagem { get; set; }
-        public ICollection<Likes> Likes { get; set; }
-        public ICollection<Comentarios> Comentarios { get; set; }
+        public ICollection<Likes>? Likes { get; set; }
+        public ICollection<Comentarios>? Comentarios { get; set; }
 
         [NotMapped]
         public int LikeCount => Likes?.Count ?? 0; // Calcula o número de likes

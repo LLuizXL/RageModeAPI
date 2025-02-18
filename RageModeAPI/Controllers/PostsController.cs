@@ -148,6 +148,81 @@ namespace RageModeAPI.Controllers
             return NoContent();
         }
 
+        // POST: api/Posts/{postId}/comment
+        [HttpPost("{postId}/comment")]
+        public async Task<IActionResult> AddComment(Guid postId, [FromBody] Comentarios comentario)
+        {
+            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            comentario.ComentariosId = Guid.NewGuid();
+            comentario.PostId = postId;
+            comentario.UsuarioId = userId;
+            comentario.DataComentario = DateTime.UtcNow;
+
+            _context.Comentarios.Add(comentario);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetPostComments", new { postId = postId }, comentario);
+        }
+
+        // GET: api/Posts/{postId}/comments
+        [HttpGet("{postId}/comments")]
+        public async Task<ActionResult<IEnumerable<Comentarios>>> GetPostComments(Guid postId)
+        {
+            var comments = await _context.Comentarios
+                .Where(c => c.PostId == postId)
+                .ToListAsync();
+
+            if (comments == null || comments.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return comments;
+        }
+
+        // POST: api/Posts/{postId}/follow
+        [HttpPost("{postId}/follow")]
+        public async Task<IActionResult> FollowUserFromPost(Guid postId)
+        {
+            var post = await _context.Posts
+                .Include(p => p.Usuarios)
+                .FirstOrDefaultAsync(p => p.PostId == postId);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            var userId = post.UsuarioId;
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            if (currentUserId == userId)
+            {
+                return BadRequest("Você não pode seguir a si mesmo.");
+            }
+
+            var existingFollow = await _context.Seguidores
+                .FirstOrDefaultAsync(f => f.UsuarioId == currentUserId && f.SeguidoId == userId);
+
+            if (existingFollow != null)
+            {
+                return BadRequest("Você já está seguindo este usuário.");
+            }
+
+            var newFollow = new Seguidores
+            {
+                SeguidoresId = Guid.NewGuid(),
+                UsuarioId = currentUserId,
+                SeguidoId = userId
+            };
+
+            _context.Seguidores.Add(newFollow);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         private bool PostExists(Guid id)
         {
             return _context.Posts.Any(e => e.PostId == id);
