@@ -13,8 +13,7 @@ namespace RageModeAPI.Models
 
         //ChavesEstrangeiras 
         public Guid UsuarioId { get; set; }
-        public Usuarios? Usuario { get; set; }
-
+        public Usuarios? Usuarios { get; set; }
 
         public Guid PersonagemId { get; set; }
         public Personagem? Personagem { get; set; }
