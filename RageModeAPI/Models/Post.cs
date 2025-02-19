@@ -12,7 +12,7 @@ namespace RageModeAPI.Models
         public DateTime DataPostagem { get; set; }
 
         //ChavesEstrangeiras 
-        public Guid UsuarioId { get; set; }
+        public Guid? UsuarioId { get; set; }
         public Usuarios? Usuarios { get; set; }
 
         public Guid PersonagemId { get; set; }

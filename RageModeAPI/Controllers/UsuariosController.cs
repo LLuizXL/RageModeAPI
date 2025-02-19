@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RageModeAPI.Data;
@@ -17,10 +19,12 @@ namespace RageModeAPI.Controllers
     public class UsuariosController : ControllerBase
     {
         private readonly RageModeApiContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public UsuariosController(RageModeApiContext context)
+        public UsuariosController(RageModeApiContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/Usuarios
@@ -127,8 +131,14 @@ namespace RageModeAPI.Controllers
         public async Task<ActionResult<Usuarios>> PostUsuarios(Usuarios usuarios)
         {
             //Pegar o Id do Usuario Logado
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-            usuarios.UsuariosId = userId;
+            // Obter o ID do usuário de forma mais segura
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            usuarios.UsuariosId = Guid.Parse(userId);
+
+            var user = await _userManager.FindByIdAsync(userId);
+            usuarios.UsuarioEmail = user.Email;
+            usuarios.UsuarioSenha = user.PasswordHash;
+
 
             _context.Usuarios.Add(usuarios);
             await _context.SaveChangesAsync();

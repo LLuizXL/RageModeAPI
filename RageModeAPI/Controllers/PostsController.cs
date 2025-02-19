@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -78,6 +79,9 @@ namespace RageModeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Post>> PostPost(Post post)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            post.UsuarioId = Guid.Parse(userId);
+
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
 
@@ -216,7 +220,7 @@ namespace RageModeAPI.Controllers
             {
                 SeguidoresId = Guid.NewGuid(),
                 UsuarioId = currentUserId,
-                SeguidoId = userId
+                SeguidoId = userId.Value // Corrigir para userId.Value
             };
 
             _context.Seguidores.Add(newFollow);
