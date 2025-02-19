@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,8 +8,14 @@ namespace RageModeAPI.Models
     public class Usuarios
     {
         public Guid UsuariosId { get; set; }
+        [Required(ErrorMessage = "O nome do usuário é obrigatório.")]
+        [MaxLength(50, ErrorMessage = "O nome do usuário deve ter no máximo 20 caracteres.")]
         public string UsuarioNome { get; set; }
+
+        [Required(ErrorMessage = "O email do usuário é obrigatório.")]
         public string UsuarioEmail { get; set; }
+        [MinLength(6, ErrorMessage = "A senha do usuário deve ter no mínimo 6 caracteres.")]
+        [Required(ErrorMessage = "A senha do usuário é obrigatória.")]
         public string UsuarioSenha { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
