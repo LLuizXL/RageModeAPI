@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using RageModeAPI.Data;
 using RageModeAPI.Models;
 
@@ -80,6 +82,8 @@ namespace RageModeAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Comentarios>> PostComentarios(Comentarios comentarios)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            comentarios.UsuarioId = Guid.Parse(userId);
             _context.Comentarios.Add(comentarios);
             await _context.SaveChangesAsync();
 
