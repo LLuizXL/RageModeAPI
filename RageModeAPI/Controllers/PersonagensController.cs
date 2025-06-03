@@ -27,7 +27,12 @@ namespace RageModeAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Personagem>>> GetPersonagens()
         {
-            return await _context.Personagens.ToListAsync();
+            var personagens = await _context.Personagens
+     .Include(p => p.TipoPersonagem)
+     .Include(p => p.Jogo)
+     .ToListAsync();
+
+            return Ok(personagens);
         }
 
         // GET: api/Personagens/5
