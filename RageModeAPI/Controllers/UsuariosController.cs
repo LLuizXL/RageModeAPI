@@ -94,6 +94,19 @@ namespace RageModeAPI.Controllers
             return user.FollowerCount;
         }
 
+        [HttpPost("RegistrarUsuario")]
+        public async Task<IActionResult> RegisterUser([FromBody] Usuarios usuario)
+        {
+            usuario.UsuariosId = Guid.NewGuid();
+            usuario.CreatedAt = DateTime.UtcNow;
+
+            _context.Usuarios.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUsuarios), new { id = usuario.UsuariosId }, usuario);
+        }
+
+
         // POST: api/Usuarios/{userId}/follow
         [HttpPost("{userId}/follow")]
         public async Task<IActionResult> FollowUser(Guid userId)
