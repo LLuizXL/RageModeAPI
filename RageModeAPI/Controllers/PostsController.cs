@@ -22,20 +22,35 @@ namespace RageModeAPI.Controllers
         public PostsController(RageModeApiContext context)
         {
             _context = context;
+
         }
 
         // GET: api/Posts
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
         {
-            return await _context.Posts.ToListAsync();
+            return await _context.Posts.Include(p => p.Usuarios) // Inclui o usuário relacionado
+        .OrderByDescending(p => p.DataPostagem)
+        .ToListAsync();
+        }
+
+        //Get: api/Posts/usuario/{usuarioId}
+        public async Task<ActionResult<IEnumerable<Post>>> GetPostsByUsuario(Guid usuarioId)
+        {
+            return await _context.Posts
+                .Where(p => p.UsuarioId == usuarioId)
+                .Include(p => p.Usuarios) // Inclui o usuário relacionado
+                .OrderByDescending(p => p.DataPostagem)
+                .ToListAsync();
         }
 
         // GET: api/Posts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Post>> GetPost(Guid id)
         {
-            var post = await _context.Posts.FindAsync(id);
+            var post = await _context.Posts
+       .Include(p => p.Usuarios)
+       .FirstOrDefaultAsync(p => p.PostId == id);
 
             if (post == null)
             {
@@ -46,12 +61,23 @@ namespace RageModeAPI.Controllers
         }
 
         // PUT: api/Posts/5
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPost(Guid id, Post post)
+        public async Task<IActionResult> PutPost(
+     Guid id,
+     Post post,
+     [FromServices] IAuthorizationService authorizationService)
         {
             if (id != post.PostId)
             {
                 return BadRequest();
+            }
+
+            // Policy: só admin ou dono do post pode editar
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             _context.Entry(post).State = EntityState.Modified;
@@ -76,6 +102,7 @@ namespace RageModeAPI.Controllers
         }
 
         // POST: api/Posts
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Post>> PostPost(Post post)
         {
@@ -89,13 +116,23 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Posts/5
+        [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePost(Guid id)
+        public async Task<IActionResult> DeletePost(
+      Guid id,
+      [FromServices] IAuthorizationService authorizationService)
         {
             var post = await _context.Posts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
+            }
+
+            // Chama a policy "AdminOrOwner" passando o id do post como recurso
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             _context.Posts.Remove(post);

@@ -29,5 +29,7 @@ namespace RageModeAPI.Models
 
         public Guid? UserId { get; set; }
         public IdentityUser? User { get; set; }
+        public string? UsuarioRole { get; set; }
+
     }
 }

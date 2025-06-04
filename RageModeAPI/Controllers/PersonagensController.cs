@@ -28,13 +28,17 @@ namespace RageModeAPI.Controllers
 
         // GET: api/Personagens
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Personagem>>> GetPersonagens()
+        public async Task<ActionResult<IEnumerable<Personagem>>> GetPersonagens([FromQuery] string? jogoNome)
         {
-            var personagens = await _context.Personagens
-     .Include(p => p.TipoPersonagem)
-     .Include(p => p.Jogo)
-     .ToListAsync();
+            var query = _context.Personagens
+                .Include(p => p.TipoPersonagem)
+                .Include(p => p.Jogo)
+                .AsQueryable();
 
+            if (!string.IsNullOrEmpty(jogoNome))
+                query = query.Where(p => p.Jogo.JogoNome == jogoNome);
+
+            var personagens = await query.ToListAsync();
             return Ok(personagens);
         }
 
@@ -54,6 +58,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Personagens/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPersonagem(Guid id, Personagem personagem)
         {
@@ -85,6 +90,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Personagens
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<Personagem>> PostPersonagem(Personagem personagem)
         {
@@ -97,6 +103,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Personagens/5
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePersonagem(Guid id)
         {
@@ -117,6 +124,7 @@ namespace RageModeAPI.Controllers
             return _context.Personagens.Any(e => e.PersonagemId == id);
         }
 
+        [Authorize(Roles = "admin")]
         [HttpPost("UploadCharacterPicture")]
         public async Task<IActionResult> UploadCharacterPicture(IFormFile file, Guid PersonagemId)
         {

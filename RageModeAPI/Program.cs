@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RageModeAPI.Data;
+using RageModeAPI.Data.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 // Configurar a conexão com o banco de dados
@@ -17,6 +19,7 @@ builder.Services.AddCors(options =>
     }
     );
 });
+
 
 
 // Add services to the container.
@@ -56,6 +59,7 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+
 // Serviço de EndPoints do Identity Framework
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
 {
@@ -76,6 +80,24 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    if (!await roleManager.RoleExistsAsync("admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("admin"));
+    }
+}
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOrOwner", policy =>
+        policy.Requirements.Add(new AdminOrOwnerRequirement()));
+});
+
+// Registre o handler no DI
+builder.Services.AddScoped<IAuthorizationHandler, AdminOrOwnerHandler>();
 
 //Swagger em ambiente de produção
 app.UseSwagger();

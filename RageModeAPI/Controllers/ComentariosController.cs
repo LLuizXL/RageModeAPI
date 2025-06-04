@@ -48,15 +48,37 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Comentarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutComentarios(Guid id, Comentarios comentarios)
+        public async Task<IActionResult> PutComentarios(
+       Guid id,
+       Comentarios comentarios,
+       [FromServices] IAuthorizationService authorizationService)
         {
             if (id != comentarios.ComentariosId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(comentarios).State = EntityState.Modified;
+            // Busca o comentário existente para pegar o autor
+            var comentarioExistente = await _context.Comentarios.FindAsync(id);
+            if (comentarioExistente == null)
+            {
+                return NotFound();
+            }
+
+            // Policy: só admin ou o próprio autor pode editar
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, comentarioExistente.UsuarioId, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            // Atualize apenas os campos permitidos
+            comentarioExistente.ComentarioTexto = comentarios.ComentarioTexto;
+            // ...atualize outros campos conforme necessário...
+
+            _context.Entry(comentarioExistente).State = EntityState.Modified;
 
             try
             {
@@ -79,6 +101,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Comentarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Comentarios>> PostComentarios(Comentarios comentarios)
         {
@@ -91,13 +114,23 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Comentarios/5
+        [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComentarios(Guid id)
+        public async Task<IActionResult> DeleteComentarios(
+     Guid id,
+     [FromServices] IAuthorizationService authorizationService)
         {
             var comentarios = await _context.Comentarios.FindAsync(id);
             if (comentarios == null)
             {
                 return NotFound();
+            }
+
+            // Policy: só admin ou o próprio autor do comentário pode deletar
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, comentarios.UsuarioId, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             _context.Comentarios.Remove(comentarios);
@@ -110,5 +143,6 @@ namespace RageModeAPI.Controllers
         {
             return _context.Comentarios.Any(e => e.ComentariosId == id);
         }
+
     }
 }
