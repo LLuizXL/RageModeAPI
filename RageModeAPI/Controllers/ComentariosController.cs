@@ -29,18 +29,26 @@ namespace RageModeAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comentarios>>> GetComentarios()
         {
-            return await _context.Comentarios.ToListAsync();
+            return await _context.Comentarios
+                .Include(c => c.Usuario)
+                .Include(c => c.Post)
+                .ToListAsync();
+
         }
+
 
         // GET: api/Comentarios/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Comentarios>> GetComentarios(Guid id)
         {
-            var comentarios = await _context.Comentarios.FindAsync(id);
+            var comentarios = await _context.Comentarios
+                .Include(c => c.Usuario)
+                .Include(c => c.Post)
+                .FirstOrDefaultAsync(c => c.ComentariosId == id);
 
             if (comentarios == null)
             {
-                return NotFound();
+                return NotFound("Comentario não encontrado.");
             }
 
             return comentarios;
@@ -49,14 +57,28 @@ namespace RageModeAPI.Controllers
         // PUT: api/Comentarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutComentarios(Guid id, Comentarios comentarios)
+        [Authorize]
+        public async Task<IActionResult> PutComentarios(Guid id, [FromBody] ComentarioUpdateDto comentarioDto)
         {
-            if (id != comentarios.ComentariosId)
+
+            var comentarioExistente = await _context.Comentarios.FindAsync(id);
+
+            if (comentarioExistente == null)
             {
-                return BadRequest();
+                return NotFound("Comentario não encontrado.");
             }
 
-            _context.Entry(comentarios).State = EntityState.Modified;
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (comentarioExistente.UsuarioId != currentUserId)
+            {
+                return Forbid("Você não possui permissão para editar este comentário.");
+
+            }
+
+            comentarioExistente.ComentarioTexto = comentarioDto.ComentarioTexto;
+
+
+            _context.Entry(comentarioExistente).State = EntityState.Modified;
 
             try
             {
@@ -77,27 +99,86 @@ namespace RageModeAPI.Controllers
             return NoContent();
         }
 
+        //DTO da atualização do comentaario
+
+        public class ComentarioUpdateDto
+        {
+            public string ComentarioTexto { get; set; }
+        }
+
         // POST: api/Comentarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Comentarios>> PostComentarios(Comentarios comentarios)
+        [Authorize]
+        public async Task<ActionResult<Comentarios>> PostComentarios([FromBody] ComentarioCreateDto comentarioDto)
         {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            comentarios.UsuarioId = Guid.Parse(userId);
-            _context.Comentarios.Add(comentarios);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            var post = await _context.Posts.FindAsync(comentarioDto.PostId);
+
+            if (post == null)
+            {
+                return NotFound("Post não encontrado.");
+            }
+
+            var comentario = new Comentarios
+            {
+                ComentariosId = Guid.NewGuid(),
+                ComentarioTexto = comentarioDto.ComentarioTexto,
+                DataComentario = DateTime.UtcNow,
+                UsuarioId = userId,
+                PostId = comentarioDto.PostId
+            };
+
+
+
+            _context.Comentarios.Add(comentario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetComentarios", new { id = comentarios.ComentariosId }, comentarios);
+
+            // Mostra o usuário e o post ao retornar o comentário que foi criado
+            await _context.Entry(comentario)
+                .Reference(c => c.Usuario)
+                .LoadAsync();
+            await _context.Entry(comentario)
+                .Reference(c => c.Post)
+                .LoadAsync();
+
+
+            return CreatedAtAction(nameof(GetComentarios), new { id = comentario.ComentariosId }, comentario);
+        }
+
+        public class ComentarioCreateDto
+        {
+            public string ComentarioTexto { get; set; }
+            public Guid PostId { get; set; }
         }
 
         // DELETE: api/Comentarios/5
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> DeleteComentarios(Guid id)
         {
             var comentarios = await _context.Comentarios.FindAsync(id);
             if (comentarios == null)
             {
-                return NotFound();
+                return NotFound("Comentario não encontrado.");
+            }
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (comentarios.UsuarioId != currentUserId)
+            {
+                return Forbid("Você não possui permissão para excluir este comentário.");
             }
 
             _context.Comentarios.Remove(comentarios);

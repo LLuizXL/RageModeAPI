@@ -11,9 +11,12 @@ namespace RageModeAPI.Models
         public string JogoNome { get; set; }
 
         [StringLength(500, ErrorMessage = "A descrição do jogo não pode exceder 500 caracteres.")]
-        public string JogoDescricao { get; set; }
+        public string? JogoDescricao { get; set; }
 
         [Required(ErrorMessage = "O ano de lançamento é obrigatório.")]
-        public DateOnly AnoLancamento { get; set; }
+        public DateOnly? AnoLancamento { get; set; }
+
+
+        public ICollection<Personagem>? Personagens { get; set; }
     }
 }
