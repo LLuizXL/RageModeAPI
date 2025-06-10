@@ -12,6 +12,7 @@ namespace RageModeAPI.Models
 
         [StringLength(500, ErrorMessage = "A descrição do personagem não pode exceder 500 caracteres.")]
         public string PersonagemDescricao { get; set; }
+        public string Personagemimage { get; set; }
 
         // Chave Estrangeira TipoPersonagem
         [Required(ErrorMessage = "O TipoPersonagemId é obrigatório.")]

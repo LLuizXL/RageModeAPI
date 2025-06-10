@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,10 +19,12 @@ namespace RageModeAPI.Controllers
     public class JogosController : ControllerBase
     {
         private readonly RageModeApiContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public JogosController(RageModeApiContext context)
+        public JogosController(RageModeApiContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: api/Jogos
@@ -47,6 +50,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Jogos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutJogos(Guid id, Jogos jogos)
         {
@@ -78,6 +82,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Jogos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult<Jogos>> PostJogos(Jogos jogos)
         {
@@ -88,6 +93,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Jogos/5
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteJogos(Guid id)
         {
@@ -106,6 +112,102 @@ namespace RageModeAPI.Controllers
         private bool JogosExists(Guid id)
         {
             return _context.Jogos.Any(e => e.JogosId == id);
+        }
+
+
+
+        [Authorize(Roles = "admin")]
+        [HttpPost("UploadGamePicture")]
+        public async Task<IActionResult> UploadGamePicture(IFormFile file, Guid JogoId)
+        {
+            // Verifica se o arquivo é nulo ou vazio
+            if (file == null || file.Length == 0)
+                return BadRequest("Arquivo não pode ser nulo ou vazio.");
+
+            // Verifica se o jogo existe
+            var jogo = await _context.Jogos.FindAsync(JogoId);
+            if (jogo == null)
+                return NotFound("Usuário não encontrado.");
+
+            // Verifica se o arquivo é uma imagem
+            if (!file.ContentType.StartsWith("image/"))
+                return BadRequest("O arquivo deve ser uma imagem.");
+
+            // Define o caminho para salvar a imagem na pasta Resources/Profile
+            var gameFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Resources", "Games");
+            if (!Directory.Exists(gameFolder))
+                Directory.CreateDirectory(gameFolder);
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+            if (Array.IndexOf(allowedExtensions, fileExtension) < 0)
+                return BadRequest("Formato de arquivo não suportado. Use .jpg, .jpeg, .png ou .gif.");
+
+            var fileName = $"{jogo.JogosId}{fileExtension}";
+            var filePath = Path.Combine(gameFolder, fileName);
+
+
+            // Verifica se o arquivo já existe e o remove
+            if (System.IO.File.Exists(filePath))
+            {
+                System.IO.File.Delete(filePath);
+            }
+
+            // Salva o arquivo no disco
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // Retorna o caminho relativo da imagem
+            var relativePath = Path.Combine("Resources", "Games", fileName).Replace("\\", "/");
+
+            // Atualiza o Campo Banner do Jogo
+            jogo.imageBanner = fileName;
+            _context.Entry(jogo).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            // Retorna o caminho da imagem
+            return Ok(new { FilePath = relativePath });
+        }
+
+
+        // [HttpGET] : Buscar a imagem de jogo e retornar como Base64
+        [HttpGet("GetGamePicture")]
+        public async Task<IActionResult> GetGamePicture(Guid jogoId)
+        {
+            // Verifica se o jogo existe
+            var jogo = await _context.Jogos.FindAsync(jogoId);
+            if (jogo == null)
+                return NotFound("Jogo não encontrado.");
+
+            // Caminho da imagem na pasta Resources/Jogos
+            var gameFolder = Path.Combine(_webHostEnvironment.ContentRootPath, "Resources", "Games");
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+
+            // Procura a imagem do jogo com base no ID
+            string? gameImagePath = null;
+            foreach (var extension in allowedExtensions)
+            {
+                var potentialPath = Path.Combine(gameFolder, $"{jogo.JogosId}{extension}");
+                if (System.IO.File.Exists(potentialPath))
+                {
+                    gameImagePath = potentialPath;
+                    break;
+                }
+            }
+            // Se a imagem não for encontrada
+            if (gameImagePath == null)
+                return NotFound("Imagem de perfil não encontrada.");
+
+            // Lê o arquivo como um array de bytes
+            var imageBytes = await System.IO.File.ReadAllBytesAsync(gameImagePath);
+
+            // Converte os bytes para Base64
+            var base64Image = Convert.ToBase64String(imageBytes);
+
+            // Retorna a imagem em Base64
+            return Ok(new { Base64Image = $"data:image/{Path.GetExtension(gameImagePath).TrimStart('.')};base64,{base64Image}" });
         }
     }
 }

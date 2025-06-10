@@ -46,6 +46,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Likes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLikes(Guid id, Likes likes)
         {
@@ -77,6 +78,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Likes
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Likes>> PostLikes(Likes likes)
         {
@@ -87,6 +89,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Likes/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteLikes(Guid id)
         {

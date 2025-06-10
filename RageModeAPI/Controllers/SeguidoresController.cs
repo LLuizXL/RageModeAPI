@@ -46,6 +46,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Seguidores/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutSeguidores(Guid id, Seguidores seguidores)
         {
@@ -77,6 +78,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Seguidores
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPost]
         public async Task<ActionResult<Seguidores>> PostSeguidores(Seguidores seguidores)
         {
@@ -87,6 +89,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Seguidores/5
+        [Authorize]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteSeguidores(Guid id)
         {

@@ -38,27 +38,55 @@ namespace RageModeAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Usuarios>> GetUsuarios(Guid id)
         {
-            var usuarios = await _context.Usuarios.FindAsync(id);
-
-            if (usuarios == null)
-            {
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
                 return NotFound();
+
+            // Pegue o IdentityUser relacionado
+            var identityUser = await _userManager.FindByIdAsync(usuario.UserId.ToString());
+            if (identityUser != null)
+            {
+                var roles = await _userManager.GetRolesAsync(identityUser);
+                usuario.UsuarioRole = roles.FirstOrDefault();
             }
 
-            return usuarios;
+            return usuario;
         }
 
         // PUT: api/Usuarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUsuarios(Guid id, Usuarios usuarios)
+        public async Task<IActionResult> PutUsuarios(
+      Guid id,
+      Usuarios usuarios,
+      [FromServices] IAuthorizationService authorizationService)
         {
             if (id != usuarios.UsuariosId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(usuarios).State = EntityState.Modified;
+            // Policy: só admin ou o próprio usuário pode editar o perfil
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            // Verifique se o usuário existe antes de modificar
+            var usuarioExistente = await _context.Usuarios.FindAsync(id);
+            if (usuarioExistente == null)
+            {
+                return NotFound();
+            }
+
+            // Atualize apenas os campos permitidos
+            usuarioExistente.UsuarioNome = usuarios.UsuarioNome;
+            usuarioExistente.UsuarioEmail = usuarios.UsuarioEmail;
+            // ...atualize outros campos conforme necessário...
+
+            _context.Entry(usuarioExistente).State = EntityState.Modified;
 
             try
             {
@@ -78,6 +106,11 @@ namespace RageModeAPI.Controllers
 
             return NoContent();
         }
+
+        private bool UsuariosExists(Guid id)
+        {
+            return _context.Usuarios.Any(e => e.UsuariosId == id);
+        }
         // GET: api/Usuarios/{userId}/followers/count
         [HttpGet("{userId}/followers/count")]
         public async Task<ActionResult<int>> GetFollowerCount(Guid userId)
@@ -95,6 +128,7 @@ namespace RageModeAPI.Controllers
         }
 
         // POST: api/Usuarios/{userId}/follow
+        [Authorize]
         [HttpPost("{userId}/follow")]
         public async Task<IActionResult> FollowUser(Guid userId)
         {
@@ -125,6 +159,26 @@ namespace RageModeAPI.Controllers
 
             return NoContent();
         }
+        //Delete : api/Usuarios/{userId}/unfollow
+        [Authorize]
+        [HttpDelete("{userId}/unfollow")]
+        public async Task<IActionResult> UnfollowUser(Guid userId)
+        {
+            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+
+            var existingFollow = await _context.Seguidores
+                .FirstOrDefaultAsync(f => f.UsuarioId == currentUserId && f.SeguidoId == userId);
+
+            if (existingFollow == null)
+            {
+                return BadRequest("Você não está seguindo este usuário.");
+            }
+
+            _context.Seguidores.Remove(existingFollow);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
         // POST: api/Usuarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
@@ -147,13 +201,23 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Usuarios/5
+        [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuarios(Guid id)
+        public async Task<IActionResult> DeleteUsuarios(
+     Guid id,
+     [FromServices] IAuthorizationService authorizationService)
         {
             var usuarios = await _context.Usuarios.FindAsync(id);
             if (usuarios == null)
             {
                 return NotFound();
+            }
+
+            // Policy: só admin ou o próprio usuário pode deletar a conta
+            var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
+            if (!authorizationResult.Succeeded)
+            {
+                return Forbid();
             }
 
             _context.Usuarios.Remove(usuarios);
@@ -162,9 +226,19 @@ namespace RageModeAPI.Controllers
             return NoContent();
         }
 
-        private bool UsuariosExists(Guid id)
+        // POST: api/Usuarios/{userId}/addrole
+        [HttpPost("{userId}/addrole")]
+        public async Task<IActionResult> AddRoleToUser(Guid userId, [FromBody] string role)
         {
-            return _context.Usuarios.Any(e => e.UsuariosId == id);
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return NotFound("Usuário não encontrado.");
+
+            var result = await _userManager.AddToRoleAsync(user, role);
+            if (result.Succeeded)
+                return Ok("Role adicionada com sucesso!");
+            else
+                return BadRequest(result.Errors);
         }
     }
 }

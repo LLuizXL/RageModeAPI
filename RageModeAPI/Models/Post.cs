@@ -23,7 +23,9 @@ namespace RageModeAPI.Models
         public ICollection<Comentarios>? Comentarios { get; set; }
 
         [NotMapped]
-        public int LikeCount => Likes?.Count ?? 0; // Calcula o número de likes
+        public int LikeCount => Likes?.Count(l => l.LikeorNot) ?? 0;
+        [NotMapped]
+        public int DislikeCount => Likes?.Count(l => !l.LikeorNot) ?? 0;
 
         [NotMapped]
         public int CommentCount => Comentarios?.Count ?? 0; // Calcula o número de comentários
