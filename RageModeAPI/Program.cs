@@ -77,6 +77,9 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
+
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 //Swagger em ambiente de produção
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -92,5 +95,6 @@ app.UseAuthorization();
 app.UseCors("AllowAll");
 
 app.MapControllers();
+app.UseStaticFiles();
 
 app.Run();

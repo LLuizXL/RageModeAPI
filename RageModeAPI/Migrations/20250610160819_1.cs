@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RageModeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class NewDB : Migration
+    public partial class _1 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -55,8 +55,8 @@ namespace RageModeAPI.Migrations
                 columns: table => new
                 {
                     JogosId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    JogoNome = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    JogoDescricao = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    JogoNome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    JogoDescricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     AnoLancamento = table.Column<DateOnly>(type: "date", nullable: false)
                 },
                 constraints: table =>
@@ -74,21 +74,6 @@ namespace RageModeAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TiposPersonagens", x => x.TipoPersonagemId);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Usuarios",
-                columns: table => new
-                {
-                    UsuariosId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UsuarioNome = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UsuarioEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    UsuarioSenha = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Usuarios", x => x.UsuariosId);
                 });
 
             migrationBuilder.CreateTable(
@@ -198,12 +183,34 @@ namespace RageModeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    UsuariosId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UsuarioNome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    UsuarioEmail = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UsuarioSenha = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    UserId1 = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.UsuariosId);
+                    table.ForeignKey(
+                        name: "FK_Usuarios_AspNetUsers_UserId1",
+                        column: x => x.UserId1,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Personagens",
                 columns: table => new
                 {
                     PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    PersonagemNome = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PersonagemDescricao = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PersonagemNome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    PersonagemDescricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     TipoPersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     JogoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
@@ -258,9 +265,10 @@ namespace RageModeAPI.Migrations
                     PostConteudo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TipoPost = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataPostagem = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     UsuariosId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -419,6 +427,11 @@ namespace RageModeAPI.Migrations
                 name: "IX_Seguidores_UsuarioId",
                 table: "Seguidores",
                 column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Usuarios_UserId1",
+                table: "Usuarios",
+                column: "UserId1");
         }
 
         /// <inheritdoc />
@@ -452,9 +465,6 @@ namespace RageModeAPI.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Postagem");
 
             migrationBuilder.DropTable(
@@ -468,6 +478,9 @@ namespace RageModeAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "TiposPersonagens");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

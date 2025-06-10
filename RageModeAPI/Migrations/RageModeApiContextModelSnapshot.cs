@@ -336,6 +336,9 @@ namespace RageModeAPI.Migrations
                     b.Property<DateTime>("DataPostagem")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("PersonagemId")
                         .HasColumnType("uniqueidentifier");
 
@@ -351,7 +354,7 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<Guid?>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("UsuariosId")

@@ -12,8 +12,8 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    [Migration("20250218191151_MudandoString2")]
-    partial class MudandoString2
+    [Migration("20250610160819_1")]
+    partial class _1
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -262,11 +262,13 @@ namespace RageModeAPI.Migrations
 
                     b.Property<string>("JogoDescricao")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("JogoNome")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("JogosId");
 
@@ -308,11 +310,13 @@ namespace RageModeAPI.Migrations
 
                     b.Property<string>("PersonagemDescricao")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("PersonagemNome")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<Guid>("TipoPersonagemId")
                         .HasColumnType("uniqueidentifier");
@@ -335,6 +339,9 @@ namespace RageModeAPI.Migrations
                     b.Property<DateTime>("DataPostagem")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<Guid>("PersonagemId")
                         .HasColumnType("uniqueidentifier");
 
@@ -350,7 +357,7 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("UsuarioId")
+                    b.Property<Guid?>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("UsuariosId")
@@ -417,15 +424,14 @@ namespace RageModeAPI.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("UsuarioEmail")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UsuarioNome")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("UsuarioSenha")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UsuariosId");

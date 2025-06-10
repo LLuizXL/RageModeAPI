@@ -11,6 +11,8 @@ namespace RageModeAPI.Models
         public string TipoPost { get; set; }
         public DateTime DataPostagem { get; set; }
 
+
+
         //ChavesEstrangeiras 
         public Guid? UsuarioId { get; set; }
         public Usuarios? Usuarios { get; set; }
@@ -26,6 +28,6 @@ namespace RageModeAPI.Models
         [NotMapped]
         public int CommentCount => Comentarios?.Count ?? 0; // Calcula o número de comentários
 
-
+        public string? ImageUrl { get; set; }
     }
 }

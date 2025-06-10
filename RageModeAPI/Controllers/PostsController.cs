@@ -80,7 +80,13 @@ namespace RageModeAPI.Controllers
         public async Task<ActionResult<Post>> PostPost(Post post)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            post.UsuarioId = Guid.Parse(userId);
+            if (!string.IsNullOrEmpty(userId))
+                post.UsuarioId = Guid.Parse(userId);
+
+            // Validação: PersonagemId existe?
+            var personagemExiste = await _context.Personagens.AnyAsync(p => p.PersonagemId == post.PersonagemId);
+            if (!personagemExiste)
+                return BadRequest("PersonagemId informado não existe.");
 
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
@@ -227,6 +233,38 @@ namespace RageModeAPI.Controllers
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpPost("{postId}/upload-image")]
+        public async Task<IActionResult> UploadImage(Guid postId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("O arquivo de imagem é obrigatório.");
+
+            if (!file.ContentType.StartsWith("image/"))
+                return BadRequest("O arquivo deve ser uma imagem.");
+
+            var post = await _context.Posts.FindAsync(postId);
+            if (post == null)
+                return NotFound("Post não encontrado.");
+
+            var directoryPath = Path.Combine("wwwroot", "images");
+            if (!Directory.Exists(directoryPath))
+                Directory.CreateDirectory(directoryPath);
+
+            var fileName = $"{postId}_{file.FileName}";
+            var filePath = Path.Combine(directoryPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            post.ImageUrl = $"/images/{fileName}";
+            _context.Entry(post).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { PostId = post.PostId, ImageUrl = post.ImageUrl });
         }
 
         private bool PostExists(Guid id)
