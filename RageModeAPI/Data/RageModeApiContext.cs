@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace RageModeAPI.Data
 {
-    public class RageModeApiContext : IdentityDbContext
+    public class RageModeApiContext : IdentityDbContext<Usuarios> // Especifique explicitamente seus Usuarios como o Usuário Identity
     {
         //Método construtor
         public RageModeApiContext(DbContextOptions<RageModeApiContext> options) : base(options)
@@ -15,48 +15,112 @@ namespace RageModeAPI.Data
         public DbSet<Personagem> Personagens { get; set; }
         public DbSet<TipoPersonagem> TiposPersonagens { get; set; }
         public DbSet<Comentarios> Comentarios { get; set; }
-        public DbSet<Usuarios> Usuarios { get; set; }
+        public DbSet<Usuarios> Usuarios { get; set; } // tabela de usuário personalizada
         public DbSet<Seguidores> Seguidores { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Likes> Likes { get; set; }
+
         //Sobrescrever o método OnModelCreating
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            base.OnModelCreating(modelBuilder); // CRUCIAL: Chame o método base para IdentityDbContext
+
+            // Mapeamentos de Tabela (Opcional, mas bom para nomes de tabela personalizados)
             modelBuilder.Entity<Personagem>().ToTable("Personagens");
             modelBuilder.Entity<TipoPersonagem>().ToTable("TiposPersonagens");
             modelBuilder.Entity<Jogos>().ToTable("Jogos");
             modelBuilder.Entity<Post>().ToTable("Postagem");
             modelBuilder.Entity<Comentarios>().ToTable("Comentarios");
-            modelBuilder.Entity<Usuarios>().ToTable("Usuarios");
+            modelBuilder.Entity<Usuarios>().ToTable("Usuarios"); // Mapeia IdentityUser para a tabela 'Usuarios'
             modelBuilder.Entity<Likes>().ToTable("Likes");
 
-            // Configuração dos relacionamentos de Follow
+            // --- Configurar Relacionamentos ---
+
+            // Configuração dos relacionamentos de Follow (Seguidores)
             modelBuilder.Entity<Seguidores>()
-                .HasOne(f => f.Usuario)
+                .HasOne(f => f.Usuario) // O usuário que segue
                 .WithMany(u => u.Seguindo)
                 .HasForeignKey(f => f.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // RESTRICT: Previne ciclos
 
             modelBuilder.Entity<Seguidores>()
-                .HasOne(f => f.Seguido)
+                .HasOne(f => f.Seguido) // O usuário que está sendo seguido
                 .WithMany(u => u.Seguidores)
                 .HasForeignKey(f => f.SeguidoId)
-                .OnDelete(DeleteBehavior.Restrict);
-            // Configuração dos relacionamentos de Like
-            modelBuilder.Entity<Likes>()
-                .HasOne(l => l.Usuarios)
-                .WithMany(u => u.Likes)
-                .HasForeignKey(l => l.UsuariosId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict); // RESTRICT: Previne ciclos
 
+            // Configuração para Post -> Author (Usuario)
+            // *** ATENÇÃO: Ajuste aqui conforme sua escolha na model Post.cs ***
+            modelBuilder.Entity<Post>()
+                .HasOne(p => p.Usuarios) // Se você escolheu Opção B (Author)
+                .WithMany(u => u.Posts)
+                .HasForeignKey(p => p.UsuarioId) // Se você escolheu Opção B (AuthorId)
+                .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
+
+            // Se você escolheu a Opção A (UsuarioId/Usuarios) na model Post, use ISSO ABAIXO:
+            // modelBuilder.Entity<Post>()
+            //     .HasOne(p => p.Usuarios)
+            //     .WithMany(u => u.Posts)
+            //     .HasForeignKey(p => p.UsuarioId)
+            //     .OnDelete(DeleteBehavior.Restrict);
+
+
+            // Configuração para Post -> Personagem
+            //modelBuilder.Entity<Post>()
+            //    .HasOne(p => p.Personagem)
+            //    .WithMany(per => per.Posts) // Assumindo ICollection<Post> Posts em Personagem
+            //    .HasForeignKey(p => p.PersonagemId)
+            //    .OnDelete(DeleteBehavior.Restrict); // Geralmente RESTRICT para lookups
+
+            // Configuração para Likes -> Usuarios
+            modelBuilder.Entity<Likes>()
+                .HasOne(l => l.Usuarios) // NOME CORRETO: l.Usuarios (como na sua model Likes)
+                .WithMany(u => u.Likes)
+                .HasForeignKey(l => l.UsuariosId) // NOME CORRETO: l.UsuariosId (como na sua model Likes)
+                .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
+
+            // Configuração para Likes -> Post
             modelBuilder.Entity<Likes>()
                 .HasOne(l => l.Post)
                 .WithMany(p => p.Likes)
                 .HasForeignKey(l => l.PostId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade); // CASCADE: Se o Post é excluído, os Likes dele são excluídos.
 
+            // Configuração para Comentarios -> Usuario
+            modelBuilder.Entity<Comentarios>()
+                .HasOne(c => c.Usuario) // NOME CORRETO: c.Usuario (como na sua model Comentarios)
+                .WithMany(u => u.Comentarios)
+                .HasForeignKey(c => c.UsuarioId) // NOME CORRETO: c.UsuarioId (como na sua model Comentarios)
+                .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
 
+            // Configuração para Comentarios -> Post
+            modelBuilder.Entity<Comentarios>()
+                .HasOne(c => c.Post)
+                .WithMany(p => p.Comentarios)
+                .HasForeignKey(c => c.PostId)
+                .OnDelete(DeleteBehavior.Cascade); // CASCADE: Se o Post é excluído, os Comentários dele são excluídos.
+
+            // Configuração para Personagem -> TipoPersonagem
+            modelBuilder.Entity<Personagem>()
+                .HasOne(p => p.TipoPersonagem)
+                .WithMany(tp => tp.Personagens) // Assumindo ICollection<Personagem> Personagens em TipoPersonagem
+                .HasForeignKey(p => p.TipoPersonagemId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Configuração para Personagem -> Jogos
+            modelBuilder.Entity<Personagem>()
+                .HasOne(p => p.Jogo)
+                .WithMany(j => j.Personagens) // Assumindo ICollection<Personagem> Personagens em Jogos
+                .HasForeignKey(p => p.JogoId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Adicione configurações para outras entidades, se houverem (ex: Personagem -> Jogos)
+            // Exemplo:
+            // modelBuilder.Entity<Personagem>()
+            //     .HasOne(p => p.Jogo) // Assumindo que Personagem tem uma FK para Jogos
+            //     .WithMany(j => j.Personagens) // Assumindo que Jogos tem uma coleção de Personagens
+            //     .HasForeignKey(p => p.JogoId)
+            //     .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
