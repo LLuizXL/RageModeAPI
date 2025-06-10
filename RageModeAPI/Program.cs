@@ -114,8 +114,6 @@ var app = builder.Build();
 //Swagger em ambiente de produção
 app.UseSwagger();
 app.UseSwaggerUI();
-//Mapear os EndPoints padrão do Identity Framework
-app.MapGroup("/Users").MapIdentityApi<IdentityUser>();
 
 app.UseHttpsRedirection();
 
