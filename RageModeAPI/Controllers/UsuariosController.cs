@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -15,13 +16,12 @@ namespace RageModeAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [AllowAnonymous]
     public class UsuariosController : ControllerBase
     {
         private readonly RageModeApiContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<Usuarios> _userManager;
 
-        public UsuariosController(RageModeApiContext context, UserManager<IdentityUser> userManager)
+        public UsuariosController(RageModeApiContext context, UserManager<Usuarios> userManager)
         {
             _context = context;
             _userManager = userManager;
@@ -35,8 +35,8 @@ namespace RageModeAPI.Controllers
         }
 
         // GET: api/Usuarios/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Usuarios>> GetUsuarios(Guid id)
+        [HttpGet("UserById")]
+        public async Task<ActionResult<Usuarios>> GetUsuarios(string id)
         {
             var usuario = await _context.Usuarios.FindAsync(id);
             if (usuario == null)
@@ -83,41 +83,42 @@ namespace RageModeAPI.Controllers
 
             // Atualize apenas os campos permitidos
             usuarioExistente.UsuarioNome = usuarios.UsuarioNome;
-            usuarioExistente.UsuarioEmail = usuarios.UsuarioEmail;
+            usuarioExistente.UsuarioEmail = usuarios.Email;
             // ...atualize outros campos conforme necessário...
 
             _context.Entry(usuarioExistente).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                return BadRequest("O ID do usuário não corresponde ao ID fornecido.");
             }
-            catch (DbUpdateConcurrencyException)
+
+            var userExistente = await _userManager.FindByIdAsync(id);
+
+            if (userExistente == null)
             {
-                if (!UsuariosExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound("Usuário não encontrado.");
+            }
+
+            userExistente.UserName = usuarios.UsuarioNome;
+            userExistente.Email = usuarios.Email;
+
+            var result = await _userManager.UpdateAsync(userExistente);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest("Erro ao atualizar o usuário. " + result.Errors);
             }
 
             return NoContent();
         }
-
-        private bool UsuariosExists(Guid id)
-        {
-            return _context.Usuarios.Any(e => e.UsuariosId == id);
-        }
         // GET: api/Usuarios/{userId}/followers/count
         [HttpGet("{userId}/followers/count")]
-        public async Task<ActionResult<int>> GetFollowerCount(Guid userId)
+        public async Task<ActionResult<int>> GetFollowerCount(string userId)
         {
             var user = await _context.Usuarios
                 .Include(u => u.Seguidores)
-                .FirstOrDefaultAsync(u => u.UsuariosId == userId);
+                .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
             {
@@ -127,12 +128,80 @@ namespace RageModeAPI.Controllers
             return user.FollowerCount;
         }
 
+
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDto model) // Use um DTO para o registro
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Crie uma nova instância de Usuarios
+            var user = new Usuarios
+            {
+                UserName = model.Email, // IdentityUser.UserName é muitas vezes o email para login
+                Email = model.Email,
+                UsuarioNome = model.UsuarioNome, // Seu nome de exibição
+                CreatedAt = DateTime.Now,
+                EmailConfirmed = true // Para testes, pode ser true. Em produção, envie email de confirmação
+            };
+
+            // Crie o usuário com a senha usando UserManager
+            var result = await _userManager.CreateAsync(user, model.Senha);
+
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+
+
+            // Retorne o usuário criado (sem a senha)
+            return CreatedAtAction(nameof(GetUsuarios), new { id = user.Id }, new UserResponseDto // Utilizando o .Id e um DTO de resposta
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UsuarioNome = user.UsuarioNome,
+                CreatedAt = DateTime.Now
+            });
+        }
+
+        // DTO pra criar o usuariol
+        public class RegisterUserDto
+        {
+            [Required(ErrorMessage = "O email é obrigatório.")]
+            [EmailAddress(ErrorMessage = "Formato de email inválido.")]
+            public string Email { get; set; }
+
+            [Required(ErrorMessage = "A senha é obrigatória.")]
+            [DataType(DataType.Password)]
+            public string Senha { get; set; }
+
+            [Required(ErrorMessage = "O nome de usuário é obrigatório.")]
+            [StringLength(50, ErrorMessage = "O nome de exibição deve ter no máximo 50 caracteres.")]
+            public string UsuarioNome { get; set; }
+        }
+
+        // DTO para a resposta do usuário la no body response
+        public class UserResponseDto
+        {
+            public string Id { get; set; } // Id do identity é string então vamo usar string aqui
+            public string Email { get; set; }
+            public string UsuarioNome { get; set; }
+            public DateTime CreatedAt { get; set; }
+        }
+
+
+        //Agora é hora que o filho chora e a mãe nao ve
+
         // POST: api/Usuarios/{userId}/follow
         [Authorize]
         [HttpPost("{userId}/follow")]
-        public async Task<IActionResult> FollowUser(Guid userId)
+        public async Task<IActionResult> FollowUser(string userId)
         {
-            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (currentUserId == userId)
             {
@@ -181,32 +250,43 @@ namespace RageModeAPI.Controllers
         }
         // POST: api/Usuarios
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Usuarios>> PostUsuarios(Usuarios usuarios)
-        {
-            //Pegar o Id do Usuario Logado
-            // Obter o ID do usuário de forma mais segura
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            usuarios.UsuariosId = Guid.Parse(userId);
+        // Não vai usar esse endpoint pq ta repetido e tamo usando o userIdentity pra criar usuario ali em cima (herdando do Identity)
+        //[HttpPost]
+        //public async Task<ActionResult<Usuarios>> PostUsuarios(Usuarios usuarios)
+        //{
+        //    //Pegar o Id do Usuario Logado
+        //    // Obter o ID do usuário de forma mais segura
+        //    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        //    usuarios.UsuariosId = Guid.Parse(userId);
 
-            var user = await _userManager.FindByIdAsync(userId);
-            usuarios.UsuarioEmail = user.Email;
-            usuarios.UsuarioSenha = user.PasswordHash;
+        //    var user = await _userManager.FindByIdAsync(userId);
+        //    usuarios.UsuarioEmail = user.Email;
+        //    usuarios.UsuarioSenha = user.PasswordHash;
 
 
-            _context.Usuarios.Add(usuarios);
-            await _context.SaveChangesAsync();
+        //    _context.Usuarios.Add(usuarios);
+        //    await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetUsuarios", new { id = usuarios.UsuariosId }, usuarios);
-        }
+        //    return CreatedAtAction("GetUsuarios", new { id = usuarios.UsuariosId }, usuarios);
+        //}
+
+        //^^^ Vou deixar comentado pq vai q precisa dps né, nunca se sabe
+
 
         // DELETE: api/Usuarios/5
-        [Authorize]
+        //O usuário só vai poder deletar, se o Id for o mesmo do usuario logado OU se ele for administrador
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUsuarios(
-     Guid id,
-     [FromServices] IAuthorizationService authorizationService)
+
+        public async Task<IActionResult> DeleteUsuarios(string id)
         {
+
+            var isAdmin = User.IsInRole("Admin");
+            var atualUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (id != atualUserId && !isAdmin)
+            {
+                return Forbid("Você não tem permissão para excluir este usuário.");
+            }
             var usuarios = await _context.Usuarios.FindAsync(id);
             if (usuarios == null)
             {
@@ -228,7 +308,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Usuarios/{userId}/addrole
         [HttpPost("{userId}/addrole")]
-        public async Task<IActionResult> AddRoleToUser(Guid userId, [FromBody] string role)
+        public async Task<IActionResult> AddRoleToUser(string userId, [FromBody] string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null)

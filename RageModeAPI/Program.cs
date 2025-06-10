@@ -3,62 +3,92 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RageModeAPI.Data;
-using RageModeAPI.Data.Authorization;
+using RageModeAPI.Models; // Adicione este using para sua model Usuarios
+//using Microsoft.AspNetCore.Authentication.JwtBearer; // Adicione este using
+using Microsoft.IdentityModel.Tokens; // Adicione este using
+using System.Text; // Adicione este using
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Configurar a conexão com o banco de dados
 builder.Services.AddDbContext<RageModeApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-//Configurar a CORS
+// Configurar a CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowAll", corsBuilder =>
     {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    }
-    );
+        corsBuilder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+    });
 });
 
-
+// Adicione os serviços de Controllers
+builder.Services.AddControllers();
 
 // Add services to the container.
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+// *** SERVIÇO PARA GERAR JWT (Adicione esta interface e classe no seu projeto!) ***
+// Exemplo: Crie uma pasta 'Services' e dentro dela, um arquivo 'ITokenService.cs' e 'TokenService.cs'
+//builder.Services.AddScoped<ITokenService, TokenService>(); // Registra seu serviço de token
+
+//// Adicione serviço de Autenticação JWT Bearer
+//builder.Services.AddAuthentication(options =>
+//{
+//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+//    options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+//})
+//AddJwtBearer(options =>
+//{
+//    options.TokenValidationParameters = new TokenValidationParameters
+//    {
+//        ValidateIssuer = true, // Validar o emissor do token
+//        ValidateAudience = true, // Validar o público do token
+//        ValidateLifetime = true, // Validar o tempo de vida do token (expiração)
+//        ValidateIssuerSigningKey = true, // Validar a chave de assinatura
+
+//        ValidIssuer = builder.Configuration["Jwt:Issuer"], // Obter do appsettings.json
+//        ValidAudience = builder.Configuration["Jwt:Audience"], // Obter do appsettings.json
+//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // Obter do appsettings.json
+//    };
+//});
+
+// Adiciona o serviço de Autorização (DEVE VIR APÓS AddAuthentication)
+builder.Services.AddAuthorization();
+
+// Configuração do Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
-//Add Swagger com JWT Bearer
-// Adionar o Swagger com JWT Bearer
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "RageModeAPI", Version = "v1" });
+
+    // Configuração para JWT Bearer no Swagger UI
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        Description = "Insira o token JWT no formato 'Bearer {token}'"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
-    {
-        new OpenApiSecurityScheme
         {
-        Reference = new OpenApiReference
+            new OpenApiSecurityScheme
             {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
             },
-            Scheme = "oauth2",
-            Name = "Bearer",
-            In = ParameterLocation.Header,
-
-        },
-        new List<string>()
+            new List<string>()
         }
     });
 });
-
 
 // Serviço de EndPoints do Identity Framework
 builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
@@ -81,39 +111,28 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-    if (!await roleManager.RoleExistsAsync("admin"))
-    {
-        await roleManager.CreateAsync(new IdentityRole("admin"));
-    }
-}
-
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOrOwner", policy =>
-        policy.Requirements.Add(new AdminOrOwnerRequirement()));
-});
-
-// Registre o handler no DI
-builder.Services.AddScoped<IAuthorizationHandler, AdminOrOwnerHandler>();
-
 //Swagger em ambiente de produção
 app.UseSwagger();
 app.UseSwaggerUI();
-//Mapear os EndPoints padrão do Identity Framework
-app.MapGroup("/Users").MapIdentityApi<IdentityUser>();
 
 app.UseHttpsRedirection();
 
-//Permitir a autenticação e autorização de qualquer origem
-app.UseAuthentication();
-
-app.UseAuthorization();
+// Use CORS antes de UseAuthentication e UseAuthorization, se for uma API Pública.
 app.UseCors("AllowAll");
 
+// Middleware de autenticação (DEVE VIR ANTES DE UseAuthorization e MapControllers)
+app.UseAuthentication();
+
+// Middleware de autorização (DEVE VIR APÓS UseAuthentication)
+app.UseAuthorization();
+
+app.MapGroup("/Identity").MapIdentityApi<Usuarios>();
+
+// Mapie os controllers, incluindo o AuthController
 app.MapControllers();
 app.UseStaticFiles();
+
+// *** REMOVA ISTO: app.MapGroup("/Users").MapIdentityApi<IdentityUser>(); ***
+// Isso cria os endpoints mínimos do Identity com IdentityUser, e você quer usar seu AuthController.
 
 app.Run();

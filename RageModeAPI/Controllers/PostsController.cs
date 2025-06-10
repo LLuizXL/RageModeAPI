@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using RageModeAPI.Data;
@@ -18,20 +19,30 @@ namespace RageModeAPI.Controllers
     public class PostsController : ControllerBase
     {
         private readonly RageModeApiContext _context;
+        private readonly UserManager<Usuarios> _userManager;
 
-        public PostsController(RageModeApiContext context)
+        public PostsController(RageModeApiContext context, UserManager<Usuarios> userManager)
         {
             _context = context;
-
+            _userManager = userManager;
         }
 
         // GET: api/Posts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Post>>> GetPosts()
+        public async Task<ActionResult<IEnumerable<PostDto>>> GetPosts()
         {
-            return await _context.Posts.Include(p => p.Usuarios) // Inclui o usuário relacionado
-        .OrderByDescending(p => p.DataPostagem)
-        .ToListAsync();
+            return await _context.Posts
+                .Include(p => p.Usuarios)
+                .Select(p => new PostDto
+                {
+                    PostId = p.PostId,
+                    PostTitulo = p.PostTitulo,
+                    PostConteudo = p.PostConteudo,
+                    TipoPost = p.TipoPost,
+                    DataPostagem = p.DataPostagem,
+                    UsuarioNome = p.Usuarios.UsuarioNome
+                })
+                .ToListAsync();
         }
 
         //Get: api/Posts/usuario/{usuarioId}
@@ -46,27 +57,35 @@ namespace RageModeAPI.Controllers
 
         // GET: api/Posts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Post>> GetPost(Guid id)
+        public async Task<ActionResult<PostDto>> GetPost(Guid id)
         {
             var post = await _context.Posts
-       .Include(p => p.Usuarios)
-       .FirstOrDefaultAsync(p => p.PostId == id);
+                .Include(p => p.Usuarios)
+                .FirstOrDefaultAsync(p => p.PostId == id);
 
             if (post == null)
             {
                 return NotFound();
             }
 
-            return post;
+            var postDto = new PostDto
+            {
+                PostId = post.PostId,
+                PostTitulo = post.PostTitulo,
+                PostConteudo = post.PostConteudo,
+                TipoPost = post.TipoPost,
+                DataPostagem = post.DataPostagem,
+                UsuarioNome = post.Usuarios?.UsuarioNome
+            };
+
+            return postDto;
         }
 
         // PUT: api/Posts/5
         [Authorize]
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPost(
-     Guid id,
-     Post post,
-     [FromServices] IAuthorizationService authorizationService)
+        [Authorize]
+        public async Task<IActionResult> PutPost(Guid id, Post post)
         {
             if (id != post.PostId)
             {
@@ -104,41 +123,67 @@ namespace RageModeAPI.Controllers
         // POST: api/Posts
         [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Post>> PostPost(Post post)
+        [Authorize]
+        public async Task<ActionResult<PostDto>> CreatePost([FromBody] PostCreateDto newPostDto)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(userId))
-                post.UsuarioId = Guid.Parse(userId);
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            // Validação: PersonagemId existe?
-            var personagemExiste = await _context.Personagens.AnyAsync(p => p.PersonagemId == post.PersonagemId);
-            if (!personagemExiste)
-                return BadRequest("PersonagemId informado não existe.");
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
+
+            var post = new Post
+            {
+                PostTitulo = newPostDto.PostTitulo,
+                PostConteudo = newPostDto.PostConteudo,
+                TipoPost = newPostDto.TipoPost,
+                DataPostagem = DateTime.UtcNow,
+                UsuarioId = userId,
+                PersonagemId = newPostDto.PersonagemId
+            };
 
             _context.Posts.Add(post);
             await _context.SaveChangesAsync();
+            await _context.Entry(post).Reference(p => p.Usuarios).LoadAsync();
 
-            return CreatedAtAction("GetPost", new { id = post.PostId }, post);
+            var postDto = new PostDto
+            {
+                PostId = post.PostId,
+                PostTitulo = post.PostTitulo,
+                PostConteudo = post.PostConteudo,
+                TipoPost = post.TipoPost,
+                DataPostagem = post.DataPostagem,
+                UsuarioNome = post.Usuarios?.UsuarioNome
+            };
+
+            return CreatedAtAction(nameof(GetPost), new { id = post.PostId }, postDto);
         }
 
         // DELETE: api/Posts/5
         [Authorize]
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePost(
-      Guid id,
-      [FromServices] IAuthorizationService authorizationService)
+        [Authorize]
+        public async Task<IActionResult> DeletePost(Guid id)
         {
+            var isAdmin = User.IsInRole("Admin");
+            var atualUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
             var post = await _context.Posts.FindAsync(id);
             if (post == null)
             {
                 return NotFound();
             }
 
-            // Chama a policy "AdminOrOwner" passando o id do post como recurso
-            var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
-            if (!authorizationResult.Succeeded)
+            // Verifica se o usuário é o dono do post ou um administrador
+            if (post.UsuarioId != atualUserId && !isAdmin)
             {
-                return Forbid();
+                return Forbid("Você não tem autorização para excluir este post.");
             }
 
             _context.Posts.Remove(post);
@@ -149,9 +194,15 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Posts/{postId}/like
         [HttpPost("{postId}/like")]
+        [Authorize]
         public async Task<IActionResult> LikePost(Guid postId, [FromBody] bool like)
         {
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
 
             var existingLike = await _context.Likes
                 .FirstOrDefaultAsync(l => l.PostId == postId && l.UsuariosId == userId);
@@ -179,9 +230,15 @@ namespace RageModeAPI.Controllers
 
         // DELETE: api/Posts/{postId}/like
         [HttpDelete("{postId}/like")]
+        [Authorize]
         public async Task<IActionResult> UnlikePost(Guid postId)
         {
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
 
             var existingLike = await _context.Likes
                 .FirstOrDefaultAsync(l => l.PostId == postId && l.UsuariosId == userId);
@@ -199,9 +256,15 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Posts/{postId}/comment
         [HttpPost("{postId}/comment")]
+        [Authorize]
         public async Task<IActionResult> AddComment(Guid postId, [FromBody] Comentarios comentario)
         {
-            var userId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
 
             comentario.ComentariosId = Guid.NewGuid();
             comentario.PostId = postId;
@@ -211,20 +274,29 @@ namespace RageModeAPI.Controllers
             _context.Comentarios.Add(comentario);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetPostComments", new { postId = postId }, comentario);
+            // Retorne apenas o id do comentário criado, para evitar ciclos
+            return CreatedAtAction("GetPostComments", new { postId = postId }, new { comentario.ComentariosId });
         }
 
         // GET: api/Posts/{postId}/comments
         [HttpGet("{postId}/comments")]
-        public async Task<ActionResult<IEnumerable<Comentarios>>> GetPostComments(Guid postId)
+        public async Task<ActionResult<IEnumerable<ComentarioDto>>> GetPostComments(Guid postId)
         {
             var comments = await _context.Comentarios
                 .Where(c => c.PostId == postId)
+                .Include(c => c.Usuario)
+                .Select(c => new ComentarioDto
+                {
+                    ComentariosId = c.ComentariosId,
+                    ComentarioTexto = c.ComentarioTexto,
+                    DataComentario = c.DataComentario,
+                    UsuarioNome = c.Usuario.UsuarioNome
+                })
                 .ToListAsync();
 
             if (comments == null || comments.Count == 0)
             {
-                return NotFound();
+                return NotFound("Não há comentários para esse post.");
             }
 
             return comments;
@@ -232,6 +304,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Posts/{postId}/follow
         [HttpPost("{postId}/follow")]
+        [Authorize]
         public async Task<IActionResult> FollowUserFromPost(Guid postId)
         {
             var post = await _context.Posts
@@ -240,11 +313,17 @@ namespace RageModeAPI.Controllers
 
             if (post == null)
             {
-                return NotFound();
+                return NotFound("Post nao encontrado.");
             }
 
             var userId = post.UsuarioId;
-            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdToFollow = post.UsuarioId;
+
+            if (string.IsNullOrEmpty(currentUserId))
+            {
+                return Unauthorized("Usuário não autenticado.");
+            }
 
             if (currentUserId == userId)
             {
@@ -259,11 +338,18 @@ namespace RageModeAPI.Controllers
                 return BadRequest("Você já está seguindo este usuário.");
             }
 
+            var usuarioAlvo = await _userManager.FindByIdAsync(userIdToFollow);
+
+            if (usuarioAlvo == null)
+            {
+                return NotFound("Usuário a ser seguido não encontrado.");
+            }
+
             var newFollow = new Seguidores
             {
                 SeguidoresId = Guid.NewGuid(),
-                UsuarioId = currentUserId,
-                SeguidoId = userId.Value // Corrigir para userId.Value
+                UsuarioId = currentUserId, // Id Seguidor
+                SeguidoId = userIdToFollow // Id Seguido
             };
 
             _context.Seguidores.Add(newFollow);
@@ -307,6 +393,33 @@ namespace RageModeAPI.Controllers
         private bool PostExists(Guid id)
         {
             return _context.Posts.Any(e => e.PostId == id);
+        }
+
+        // DTOs
+        public class PostDto
+        {
+            public Guid PostId { get; set; }
+            public string PostTitulo { get; set; }
+            public string PostConteudo { get; set; }
+            public string TipoPost { get; set; }
+            public DateTime DataPostagem { get; set; }
+            public string UsuarioNome { get; set; }
+        }
+
+        public class PostCreateDto
+        {
+            public string PostTitulo { get; set; }
+            public string PostConteudo { get; set; }
+            public string TipoPost { get; set; }
+            public Guid PersonagemId { get; set; }
+        }
+
+        public class ComentarioDto
+        {
+            public Guid ComentariosId { get; set; }
+            public string ComentarioTexto { get; set; }
+            public DateTime DataComentario { get; set; }
+            public string UsuarioNome { get; set; }
         }
     }
 }

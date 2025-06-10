@@ -11,14 +11,17 @@ namespace RageModeAPI.Models
         public string TipoPost { get; set; }
         public DateTime DataPostagem { get; set; }
 
-
-
-        //ChavesEstrangeiras 
-        public Guid? UsuarioId { get; set; }
+        //Chaves Estrangeiras  Para Usuario
+        public string? UsuarioId { get; set; }
+        [ForeignKey("UsuarioId")]
         public Usuarios? Usuarios { get; set; }
 
+
+        //Chaves Estrangeiras para Personagens
         public Guid PersonagemId { get; set; }
         public Personagem? Personagem { get; set; }
+
+
         public ICollection<Likes>? Likes { get; set; }
         public ICollection<Comentarios>? Comentarios { get; set; }
 
