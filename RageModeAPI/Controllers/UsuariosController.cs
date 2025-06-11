@@ -319,5 +319,55 @@ namespace RageModeAPI.Controllers
             else
                 return BadRequest(result.Errors);
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetUsuarioLogado()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+                return Unauthorized();
+
+            var usuario = await _context.Usuarios
+                .Where(u => u.Id == userId)
+                .Include(u => u.Seguidores)
+                .Include(u => u.Posts)
+                .Select(u => new
+                {
+                    u.Id,
+                    u.UsuarioNome,
+                    u.Email,
+                    u.UsuarioRole,
+                    u.CreatedAt,
+                    FollowerCount = u.Seguidores.Count,
+                    PostCount = u.Posts.Count,
+                    Posts = u.Posts.Select(p => new
+                    {
+                        p.PostId,
+                        p.PostTitulo,
+                        p.DataPostagem,
+                        p.LikeCount,
+                        p.CommentCount,
+                        p.ImageUrl
+                    }),
+                    Seguidores = u.Seguidores.Select(s => new
+                    {
+                        SeguidorId = s.UsuarioId
+                    }),
+                    Seguindo = u.Seguindo.Select(s => new
+                    {
+                        SeguindoId = s.SeguidoId
+                    })
+                })
+                .FirstOrDefaultAsync();
+
+            if (usuario == null)
+                return NotFound();
+
+            return Ok(usuario);
+        }
+
     }
+
 }
