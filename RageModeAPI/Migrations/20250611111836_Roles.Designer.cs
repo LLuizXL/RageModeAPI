@@ -12,8 +12,8 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    [Migration("20250610144044_Relacionamentos")]
-    partial class Relacionamentos
+    [Migration("20250611111836_Roles")]
+    partial class Roles
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -193,11 +193,11 @@ namespace RageModeAPI.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateOnly>("AnoLancamento")
+                    b.Property<DateOnly?>("AnoLancamento")
+                        .IsRequired()
                         .HasColumnType("date");
 
                     b.Property<string>("JogoDescricao")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
@@ -205,6 +205,10 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("imageBanner")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("JogosId");
 
@@ -254,6 +258,10 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Personagemimage")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("TipoPersonagemId")
                         .HasColumnType("uniqueidentifier");
@@ -353,7 +361,7 @@ namespace RageModeAPI.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Email")
@@ -400,6 +408,9 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UsuarioRole")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

@@ -6,7 +6,8 @@ using RageModeAPI.Data;
 using RageModeAPI.Models; // Adicione este using para sua model Usuarios
 //using Microsoft.AspNetCore.Authentication.JwtBearer; // Adicione este using
 using Microsoft.IdentityModel.Tokens; // Adicione este using
-using System.Text; // Adicione este using
+using System.Text;
+using RageModeAPI.Data.Authorization; // Adicione este using
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,7 +25,11 @@ builder.Services.AddCors(options =>
 });
 
 // Adicione os serviços de Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // Add services to the container.
 
@@ -91,7 +96,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Serviço de EndPoints do Identity Framework
-builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
+
+
+builder.Services.AddIdentityApiEndpoints<Usuarios>(options =>
 {
     options.SignIn.RequireConfirmedEmail = false;
     options.SignIn.RequireConfirmedAccount = false;
@@ -101,18 +108,40 @@ builder.Services.AddIdentityApiEndpoints<IdentityUser>(options =>
     options.Password.RequireLowercase = false;
     options.Password.RequiredLength = 4;
 })
+    .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<RageModeApiContext>()
     .AddDefaultTokenProviders(); // Adiocionando o provedor de tokens padrão
 
 // Add serviço de Autenticação e Autorização.
 builder.Services.AddAuthentication();
-builder.Services.AddAuthorization();
-
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOrOwner", policy =>
+        policy.Requirements.Add(new AdminOrOwnerRequirement()));
+});
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    if (!await roleManager.RoleExistsAsync("admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("admin"));
+    }
+}
+
+
+
 //Swagger em ambiente de produção
-app.UseSwagger();
+
+
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 app.UseSwaggerUI();
 
 app.UseHttpsRedirection();
@@ -133,5 +162,7 @@ app.MapControllers();
 
 // *** REMOVA ISTO: app.MapGroup("/Users").MapIdentityApi<IdentityUser>(); ***
 // Isso cria os endpoints mínimos do Identity com IdentityUser, e você quer usar seu AuthController.
+
+
 
 app.Run();

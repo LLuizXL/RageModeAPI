@@ -1,10 +1,11 @@
 ﻿using RageModeAPI.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace RageModeAPI.Data
 {
-    public class RageModeApiContext : IdentityDbContext<Usuarios> // Especifique explicitamente seus Usuarios como o Usuário Identity
+    public class RageModeApiContext : IdentityDbContext<Usuarios, IdentityRole, string> // Especifique explicitamente seus Usuarios como o Usuário Identity
     {
         //Método construtor
         public RageModeApiContext(DbContextOptions<RageModeApiContext> options) : base(options)

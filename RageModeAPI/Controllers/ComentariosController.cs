@@ -19,19 +19,37 @@ namespace RageModeAPI.Controllers
     public class ComentariosController : ControllerBase
     {
         private readonly RageModeApiContext _context;
+        private readonly IAuthorizationService authorizationService;
 
-        public ComentariosController(RageModeApiContext context)
+        public ComentariosController(RageModeApiContext context, IAuthorizationService authorizationService)
         {
             _context = context;
+            this.authorizationService = authorizationService;
         }
 
         // GET: api/Comentarios
+        public class ComentarioDto
+        {
+            public Guid ComentariosId { get; set; }
+            public string ComentarioTexto { get; set; }
+            public DateTime DataComentario { get; set; }
+            public string UsuarioNome { get; set; }
+        }
+
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comentarios>>> GetComentarios()
+
+        public async Task<ActionResult<IEnumerable<ComentarioDto>>> GetComentarios()
         {
             return await _context.Comentarios
                 .Include(c => c.Usuario)
                 .Include(c => c.Post)
+                .Select(c => new ComentarioDto
+                {
+                    ComentariosId = c.ComentariosId,
+                    ComentarioTexto = c.ComentarioTexto,
+                    DataComentario = c.DataComentario,
+                    UsuarioNome = c.Usuario.UsuarioNome,
+                })
                 .ToListAsync();
 
         }

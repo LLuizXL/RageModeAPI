@@ -20,11 +20,13 @@ namespace RageModeAPI.Controllers
     {
         private readonly RageModeApiContext _context;
         private readonly UserManager<Usuarios> _userManager;
+        private readonly IAuthorizationService authorizationService;
 
-        public PostsController(RageModeApiContext context, UserManager<Usuarios> userManager)
+        public PostsController(RageModeApiContext context, UserManager<Usuarios> userManager, IAuthorizationService authorizationService)
         {
             _context = context;
             _userManager = userManager;
+            this.authorizationService = authorizationService;
         }
 
         // GET: api/Posts
@@ -46,7 +48,8 @@ namespace RageModeAPI.Controllers
         }
 
         //Get: api/Posts/usuario/{usuarioId}
-        public async Task<ActionResult<IEnumerable<Post>>> GetPostsByUsuario(Guid usuarioId)
+        [HttpGet("PostPorUsuarioId")]
+        public async Task<ActionResult<IEnumerable<Post>>> GetPostsByUsuario(string usuarioId)
         {
             return await _context.Posts
                 .Where(p => p.UsuarioId == usuarioId)
@@ -280,12 +283,12 @@ namespace RageModeAPI.Controllers
 
         // GET: api/Posts/{postId}/comments
         [HttpGet("{postId}/comments")]
-        public async Task<ActionResult<IEnumerable<ComentarioDto>>> GetPostComments(Guid postId)
+        public async Task<ActionResult<IEnumerable<PostComentarioDto>>> GetPostComments(Guid postId)
         {
             var comments = await _context.Comentarios
                 .Where(c => c.PostId == postId)
                 .Include(c => c.Usuario)
-                .Select(c => new ComentarioDto
+                .Select(c => new PostComentarioDto
                 {
                     ComentariosId = c.ComentariosId,
                     ComentarioTexto = c.ComentarioTexto,
@@ -382,7 +385,7 @@ namespace RageModeAPI.Controllers
             public Guid PersonagemId { get; set; }
         }
 
-        public class ComentarioDto
+        public class PostComentarioDto
         {
             public Guid ComentariosId { get; set; }
             public string ComentarioTexto { get; set; }
