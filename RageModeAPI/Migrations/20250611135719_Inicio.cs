@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RageModeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Alterações : Migration
+    public partial class Inicio : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -57,8 +57,6 @@ namespace RageModeAPI.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UsuarioEmail = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UsuarioNome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UsuarioRole = table.Column<string>(type: "nvarchar(max)", nullable: true),

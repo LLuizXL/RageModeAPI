@@ -12,8 +12,8 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    [Migration("20250611113017_Alterações")]
-    partial class Alterações
+    [Migration("20250611135719_Inicio")]
+    partial class Inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -406,13 +406,6 @@ namespace RageModeAPI.Migrations
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("UsuarioEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UsuarioId")
-                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("UsuarioNome")
                         .IsRequired()
