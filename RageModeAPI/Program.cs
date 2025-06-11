@@ -11,14 +11,6 @@ using RageModeAPI.Data.Authorization; // Adicione este using
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
-    });
-});
-
 // Configurar a conexão com o banco de dados
 builder.Services.AddDbContext<RageModeApiContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
