@@ -302,16 +302,13 @@ namespace RageModeAPI.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.Designer.cs
                     b.Property<Guid?>("UsuarioId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("UsuariosId")
                         .HasColumnType("uniqueidentifier");
-========
                     b.Property<string>("UsuarioId")
                         .HasColumnType("nvarchar(450)");
->>>>>>>> main:RageModeAPI/Migrations/20250610170652_User.Designer.cs
 
                     b.HasKey("PostId");
 

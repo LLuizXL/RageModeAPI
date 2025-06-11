@@ -53,8 +53,7 @@ namespace RageModeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.cs
-========
+
                 name: "Usuarios",
                 columns: table => new
                 {
@@ -83,7 +82,7 @@ namespace RageModeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
->>>>>>>> main:RageModeAPI/Migrations/20250610144044_Relacionamentos.cs
+
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -218,7 +217,6 @@ namespace RageModeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.cs
                 name: "Usuarios",
                 columns: table => new
                 {
@@ -268,8 +266,7 @@ namespace RageModeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
-========
->>>>>>>> main:RageModeAPI/Migrations/20250610144044_Relacionamentos.cs
+
                 name: "Seguidores",
                 columns: table => new
                 {
@@ -303,15 +300,12 @@ namespace RageModeAPI.Migrations
                     PostConteudo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TipoPost = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataPostagem = table.Column<DateTime>(type: "datetime2", nullable: false),
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.cs
-                    UsuarioId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+
                     UsuariosId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
-========
+
+                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UsuarioId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
->>>>>>>> main:RageModeAPI/Migrations/20250610144044_Relacionamentos.cs
                 },
                 constraints: table =>
                 {
@@ -461,11 +455,10 @@ namespace RageModeAPI.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.cs
                 name: "IX_Usuarios_UserId1",
                 table: "Usuarios",
                 column: "UserId1");
-========
+            migrationBuilder.CreateIndex(
                 name: "EmailIndex",
                 table: "Usuarios",
                 column: "NormalizedEmail");
@@ -476,8 +469,8 @@ namespace RageModeAPI.Migrations
                 column: "NormalizedUserName",
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
->>>>>>>> main:RageModeAPI/Migrations/20250610144044_Relacionamentos.cs
         }
+
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
