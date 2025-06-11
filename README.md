@@ -36,6 +36,8 @@ Ela gerencia operações CRUD completas para entidades principais:
   - Seguir usuários.
 
 ### 🎯 Principais Endpoints
+![image](https://github.com/user-attachments/assets/556a6594-45c9-407f-9d4b-3f729c445dce)
+
 
 
 # 💻 Rodando Localmente
@@ -75,7 +77,7 @@ Install-Package Microsoft.VisualStudio.Web.CodeGeneration.Design
 Install-Package Swashbuckle.AspNetCore
 ```
 
-##🚀 Como executar a API localmente
+## 🚀 Como executar a API localmente
 1-Clone o repositório:
 
 ```bash
