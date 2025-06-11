@@ -59,8 +59,6 @@ builder.Services.AddControllers()
 //    };
 //});
 
-// Adiciona o serviço de Autorização (DEVE VIR APÓS AddAuthentication)
-builder.Services.AddAuthorization();
 
 // Configuração do Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
