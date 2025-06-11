@@ -35,7 +35,7 @@ Ela gerencia operações CRUD completas para entidades principais:
 - **Seguidores**  
   - Seguir usuários.
 
-### 🎯 Principais Endpointshttps://github.com/LLuizXL/RageModeAPI/blob/main/README.md
+### 🎯 Principais Endpoints
 ![image](https://github.com/user-attachments/assets/556a6594-45c9-407f-9d4b-3f729c445dce)
 
 
