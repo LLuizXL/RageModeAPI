@@ -12,8 +12,8 @@ using RageModeAPI.Data;
 namespace RageModeAPI.Migrations
 {
     [DbContext(typeof(RageModeApiContext))]
-    [Migration("20250611145013_Inicio2")]
-    partial class Inicio2
+    [Migration("20250611172351_Inicio")]
+    partial class Inicio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
