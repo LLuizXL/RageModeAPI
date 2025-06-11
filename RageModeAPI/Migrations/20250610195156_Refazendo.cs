@@ -6,11 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RageModeAPI.Migrations
 {
     /// <inheritdoc />
-<<<<<<<< HEAD:RageModeAPI/Migrations/20250610160819_1.cs
-    public partial class _1 : Migration
-========
-    public partial class Relacionamentos : Migration
->>>>>>>> main:RageModeAPI/Migrations/20250610144044_Relacionamentos.cs
+    public partial class Refazendo : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -35,7 +31,8 @@ namespace RageModeAPI.Migrations
                 {
                     JogosId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     JogoNome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    JogoDescricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    imageBanner = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    JogoDescricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     AnoLancamento = table.Column<DateOnly>(type: "date", nullable: false)
                 },
                 constraints: table =>
@@ -63,7 +60,8 @@ namespace RageModeAPI.Migrations
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UsuarioNome = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UsuarioRole = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     NormalizedUserName = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
@@ -113,6 +111,7 @@ namespace RageModeAPI.Migrations
                     PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     PersonagemNome = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     PersonagemDescricao = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Personagemimage = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TipoPersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     JogoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },

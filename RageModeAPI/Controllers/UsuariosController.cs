@@ -20,11 +20,13 @@ namespace RageModeAPI.Controllers
     {
         private readonly RageModeApiContext _context;
         private readonly UserManager<Usuarios> _userManager;
+        private readonly IAuthorizationService authorizationService;
 
-        public UsuariosController(RageModeApiContext context, UserManager<Usuarios> userManager)
+        public UsuariosController(RageModeApiContext context, UserManager<Usuarios> userManager, IAuthorizationService authorizationService)
         {
             _context = context;
             _userManager = userManager;
+            this.authorizationService = authorizationService;
         }
 
         // GET: api/Usuarios
@@ -35,34 +37,34 @@ namespace RageModeAPI.Controllers
         }
 
         // GET: api/Usuarios/5
-        [HttpGet("UserById")]
-        public async Task<ActionResult<Usuarios>> GetUsuarios(string id)
-        {
-            var usuario = await _context.Usuarios.FindAsync(id);
-            if (usuario == null)
-                return NotFound();
+        //[HttpGet("UserById")]
+        //public async Task<ActionResult<Usuarios>> GetUsuarios(string id)
+        //{
+        //    var usuario = await _context.Usuarios.FindAsync(id);
+        //    if (usuario == null)
+        //        return NotFound();
 
-            // Pegue o IdentityUser relacionado
-            var identityUser = await _userManager.FindByIdAsync(usuario.UserId.ToString());
-            if (identityUser != null)
-            {
-                var roles = await _userManager.GetRolesAsync(identityUser);
-                usuario.UsuarioRole = roles.FirstOrDefault();
-            }
+        //    // Pegue o IdentityUser relacionado
+        //    var identityUser = await _userManager.FindByIdAsync(usuario.UserId.ToString());
+        //    if (identityUser != null)
+        //    {
+        //        var roles = await _userManager.GetRolesAsync(identityUser);
+        //        usuario.UsuarioRole = roles.FirstOrDefault();
+        //    }
 
-            return usuario;
-        }
+        //    return usuario;
+        //}
 
         // PUT: api/Usuarios/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutUsuarios(
-      Guid id,
+      string id,
       Usuarios usuarios,
       [FromServices] IAuthorizationService authorizationService)
         {
-            if (id != usuarios.UsuariosId)
+            if (id != usuarios.Id)
             {
                 return BadRequest();
             }
@@ -83,15 +85,12 @@ namespace RageModeAPI.Controllers
 
             // Atualize apenas os campos permitidos
             usuarioExistente.UsuarioNome = usuarios.UsuarioNome;
-            usuarioExistente.UsuarioEmail = usuarios.Email;
+            usuarioExistente.Email = usuarios.Email;
             // ...atualize outros campos conforme necessário...
 
             _context.Entry(usuarioExistente).State = EntityState.Modified;
 
-            try
-            {
-                return BadRequest("O ID do usuário não corresponde ao ID fornecido.");
-            }
+
 
             var userExistente = await _userManager.FindByIdAsync(id);
 
@@ -231,9 +230,9 @@ namespace RageModeAPI.Controllers
         //Delete : api/Usuarios/{userId}/unfollow
         [Authorize]
         [HttpDelete("{userId}/unfollow")]
-        public async Task<IActionResult> UnfollowUser(Guid userId)
+        public async Task<IActionResult> UnfollowUser(string userId)
         {
-            var currentUserId = Guid.Parse(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var existingFollow = await _context.Seguidores
                 .FirstOrDefaultAsync(f => f.UsuarioId == currentUserId && f.SeguidoId == userId);
