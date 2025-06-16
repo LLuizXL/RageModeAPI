@@ -42,7 +42,8 @@ namespace RageModeAPI.Controllers
                     PostConteudo = p.PostConteudo,
                     TipoPost = p.TipoPost,
                     DataPostagem = p.DataPostagem,
-                    UsuarioNome = p.Usuarios.UsuarioNome
+                    UsuarioNome = p.Usuarios.UsuarioNome,
+                    UsuarioId = post.UsuarioId
                 })
                 .ToListAsync();
         }
@@ -78,7 +79,8 @@ namespace RageModeAPI.Controllers
                 PostConteudo = post.PostConteudo,
                 TipoPost = post.TipoPost,
                 DataPostagem = post.DataPostagem,
-                UsuarioNome = post.Usuarios?.UsuarioNome
+                UsuarioNome = post.Usuarios?.UsuarioNome,
+                UsuarioId = post.UsuarioId
             };
 
             return postDto;
@@ -407,6 +409,7 @@ namespace RageModeAPI.Controllers
             public string TipoPost { get; set; }
             public DateTime DataPostagem { get; set; }
             public string UsuarioNome { get; set; }
+            public string UsuarioId { get; set; }
         }
 
         public class PostCreateDto
