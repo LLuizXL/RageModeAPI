@@ -164,7 +164,8 @@ namespace RageModeAPI.Controllers
                 PostConteudo = post.PostConteudo,
                 TipoPost = post.TipoPost,
                 DataPostagem = post.DataPostagem,
-                UsuarioNome = post.Usuarios?.UsuarioNome
+                UsuarioNome = post.Usuarios?.UsuarioNome,
+                UsuarioId = post.UsuarioId
             };
 
             return CreatedAtAction(nameof(GetPost), new { id = post.PostId }, postDto);
