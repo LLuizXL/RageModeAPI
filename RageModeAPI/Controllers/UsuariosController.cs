@@ -306,7 +306,7 @@ namespace RageModeAPI.Controllers
         }
 
         // POST: api/Usuarios/{userId}/addrole
-        [HttpPost("{userId}/addrole")]
+        [HttpPost("{userId}/AddRole")]
         public async Task<IActionResult> AddRoleToUser(string userId, [FromBody] string role)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -314,8 +314,15 @@ namespace RageModeAPI.Controllers
                 return NotFound("Usuário não encontrado.");
 
             var result = await _userManager.AddToRoleAsync(user, role);
+
             if (result.Succeeded)
+            {
+                user.UsuarioRole = role;
+                _context.Usuarios.Update(user);
+                await _context.SaveChangesAsync();
+
                 return Ok("Role adicionada com sucesso!");
+            }
             else
                 return BadRequest(result.Errors);
         }
