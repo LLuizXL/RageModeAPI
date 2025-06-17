@@ -43,7 +43,7 @@ namespace RageModeAPI.Controllers
                     TipoPost = p.TipoPost,
                     DataPostagem = p.DataPostagem,
                     UsuarioNome = p.Usuarios.UsuarioNome,
-                    UsuarioId = post.UsuarioId
+                    UsuarioId = p.UsuarioId
                 })
                 .ToListAsync();
         }
