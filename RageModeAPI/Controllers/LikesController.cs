@@ -110,9 +110,9 @@ namespace RageModeAPI.Controllers
         {
             return _context.Likes.Any(e => e.LikesId == id);
         }
-    }
 
-    [HttpGet("{postId}/like")]
+
+        [HttpGet("{postId}/like")]
         [Authorize]
         public async Task<IActionResult> GetUserLike(Guid postId)
         {
