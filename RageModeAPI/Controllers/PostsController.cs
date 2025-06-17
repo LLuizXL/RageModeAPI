@@ -401,6 +401,21 @@ namespace RageModeAPI.Controllers
             return _context.Posts.Any(e => e.PostId == id);
         }
 
+        [HttpGet("{postId}/like")]
+        [Authorize]
+        public async Task<IActionResult> GetUserLike(Guid postId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized();
+
+            var like = await _context.Likes.FirstOrDefaultAsync(l => l.PostId == postId && l.UsuariosId == userId);
+            if (like == null)
+                return NotFound();
+
+            return Ok(new { likeorNot = like.LikeorNot });
+        }
+
         // DTOs
         public class PostDto
         {
