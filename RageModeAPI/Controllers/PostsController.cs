@@ -415,6 +415,13 @@ namespace RageModeAPI.Controllers
 
             return Ok(new { likeorNot = like.LikeorNot });
         }
+        [HttpGet("{postId}/likes-count")]
+        public async Task<IActionResult> GetLikesCount(Guid postId)
+        {
+            var likes = await _context.Likes.CountAsync(l => l.PostId == postId && l.LikeorNot == true);
+            var dislikes = await _context.Likes.CountAsync(l => l.PostId == postId && l.LikeorNot == false);
+            return Ok(new { likes, dislikes });
+        }
 
         // DTOs
         public class PostDto
