@@ -44,6 +44,8 @@ namespace RageModeAPI.Controllers
                     DataPostagem = p.DataPostagem,
                     UsuarioNome = p.Usuarios.UsuarioNome,
                     UsuarioId = p.UsuarioId
+                      LikeCount = p.Likes.Count(l => l.LikeorNot),
+                    DislikeCount = p.Likes.Count(l => !l.LikeorNot)
                 })
                 .ToListAsync();
         }
@@ -80,7 +82,9 @@ namespace RageModeAPI.Controllers
                 TipoPost = post.TipoPost,
                 DataPostagem = post.DataPostagem,
                 UsuarioNome = post.Usuarios?.UsuarioNome,
-                UsuarioId = post.UsuarioId
+                UsuarioId = post.UsuarioId,
+                LikeCount = p.Likes.Count(l => l.LikeorNot),
+                DislikeCount = p.Likes.Count(l => !l.LikeorNot)
             };
 
             return postDto;
@@ -433,6 +437,8 @@ namespace RageModeAPI.Controllers
             public DateTime DataPostagem { get; set; }
             public string UsuarioNome { get; set; }
             public string UsuarioId { get; set; }
+            public int LikeCount { get; set; }      // Novo campo
+            public int DislikeCount { get; set; }
         }
 
         public class PostCreateDto
@@ -450,5 +456,6 @@ namespace RageModeAPI.Controllers
             public DateTime DataComentario { get; set; }
             public string UsuarioNome { get; set; }
         }
+
     }
 }
