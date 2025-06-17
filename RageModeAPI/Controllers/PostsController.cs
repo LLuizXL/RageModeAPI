@@ -35,6 +35,7 @@ namespace RageModeAPI.Controllers
         {
             return await _context.Posts
                 .Include(p => p.Usuarios)
+                 .Include(p => p.Likes)
                 .Select(p => new PostDto
                 {
                     PostId = p.PostId,
@@ -67,6 +68,7 @@ namespace RageModeAPI.Controllers
         {
             var post = await _context.Posts
                 .Include(p => p.Usuarios)
+                 .Include(p => p.Likes)
                 .FirstOrDefaultAsync(p => p.PostId == id);
 
             if (post == null)
