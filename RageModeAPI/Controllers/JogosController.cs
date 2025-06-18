@@ -97,21 +97,20 @@ namespace RageModeAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteJogos(Guid id)
         {
-            var jogos = await _context.Jogos.FindAsync(id);
-            if (jogos == null)
+            var jogo = await _context.Jogos.FindAsync(id);
+            if (jogo == null)
             {
                 return NotFound();
             }
 
-            _context.Jogos.Remove(jogos);
+            // Remove todos os personagens associados ao jogo
+            var personagens = _context.Personagens.Where(p => p.JogoId == id);
+            _context.Personagens.RemoveRange(personagens);
+
+            _context.Jogos.Remove(jogo);
             await _context.SaveChangesAsync();
 
             return NoContent();
-        }
-
-        private bool JogosExists(Guid id)
-        {
-            return _context.Jogos.Any(e => e.JogosId == id);
         }
 
 

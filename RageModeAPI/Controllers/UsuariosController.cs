@@ -286,20 +286,29 @@ namespace RageModeAPI.Controllers
             {
                 return Forbid("Você não tem permissão para excluir este usuário.");
             }
-            var usuarios = await _context.Usuarios.FindAsync(id);
-            if (usuarios == null)
+            var usuario = await _context.Usuarios.FindAsync(id);
+            if (usuario == null)
             {
                 return NotFound();
             }
 
-            // Policy: só admin ou o próprio usuário pode deletar a conta
             var authorizationResult = await authorizationService.AuthorizeAsync(User, id, "AdminOrOwner");
             if (!authorizationResult.Succeeded)
             {
                 return Forbid();
             }
 
-            _context.Usuarios.Remove(usuarios);
+            // Remove comentários do usuário
+            var comentarios = _context.Comentarios.Where(c => c.UsuarioId == id);
+            _context.Comentarios.RemoveRange(comentarios);
+
+            // Remove posts do usuário
+            var posts = _context.Posts.Where(p => p.UsuarioId == id);
+            _context.Posts.RemoveRange(posts);
+
+            // Se houver outras entidades relacionadas, remova aqui (ex: likes, personagens, etc.)
+
+            _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
 
             return NoContent();

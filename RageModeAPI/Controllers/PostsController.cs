@@ -198,10 +198,19 @@ namespace RageModeAPI.Controllers
                 return Forbid("Você não tem autorização para excluir este post.");
             }
 
+            // Remove comentários associados ao post
+            var comentarios = _context.Comentarios.Where(c => c.PostId == id);
+            _context.Comentarios.RemoveRange(comentarios);
+
+            // Remove likes associados ao post
+            var likes = _context.Likes.Where(l => l.PostId == id);
+            _context.Likes.RemoveRange(likes);
+
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
         }
 
         // POST: api/Posts/{postId}/like
@@ -431,33 +440,33 @@ namespace RageModeAPI.Controllers
 
         // DTOs
         public class PostDto
-        {
-            public Guid PostId { get; set; }
-            public string PostTitulo { get; set; }
-            public string PostConteudo { get; set; }
-            public string TipoPost { get; set; }
-            public DateTime DataPostagem { get; set; }
-            public string UsuarioNome { get; set; }
-            public string UsuarioId { get; set; }
-            public int LikeCount { get; set; }      // Novo campo
-            public int DislikeCount { get; set; }
-        }
-
-        public class PostCreateDto
-        {
-            public string PostTitulo { get; set; }
-            public string PostConteudo { get; set; }
-            public string TipoPost { get; set; }
-            public Guid PersonagemId { get; set; }
-        }
-
-        public class PostComentarioDto
-        {
-            public Guid ComentariosId { get; set; }
-            public string ComentarioTexto { get; set; }
-            public DateTime DataComentario { get; set; }
-            public string UsuarioNome { get; set; }
-        }
-
+    {
+        public Guid PostId { get; set; }
+        public string PostTitulo { get; set; }
+        public string PostConteudo { get; set; }
+        public string TipoPost { get; set; }
+        public DateTime DataPostagem { get; set; }
+        public string UsuarioNome { get; set; }
+        public string UsuarioId { get; set; }
+        public int LikeCount { get; set; }      // Novo campo
+        public int DislikeCount { get; set; }
     }
+
+    public class PostCreateDto
+    {
+        public string PostTitulo { get; set; }
+        public string PostConteudo { get; set; }
+        public string TipoPost { get; set; }
+        public Guid PersonagemId { get; set; }
+    }
+
+    public class PostComentarioDto
+    {
+        public Guid ComentariosId { get; set; }
+        public string ComentarioTexto { get; set; }
+        public DateTime DataComentario { get; set; }
+        public string UsuarioNome { get; set; }
+    }
+
+}
 }
