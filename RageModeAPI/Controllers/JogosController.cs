@@ -50,7 +50,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Jogos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutJogos(Guid id, Jogos jogos)
         {
@@ -82,7 +82,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Jogos
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Jogos>> PostJogos(Jogos jogos)
         {
@@ -93,7 +93,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Jogos/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteJogos(Guid id)
         {
@@ -116,7 +116,7 @@ namespace RageModeAPI.Controllers
 
 
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("UploadGamePicture")]
         public async Task<IActionResult> UploadGamePicture(IFormFile file, Guid JogoId)
         {

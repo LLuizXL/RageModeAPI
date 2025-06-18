@@ -46,7 +46,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/TipoPersonagens/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutTipoPersonagem(Guid id, TipoPersonagem tipoPersonagem)
         {
@@ -78,7 +78,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/TipoPersonagens
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<TipoPersonagem>> PostTipoPersonagem(TipoPersonagem tipoPersonagem)
         {
@@ -89,7 +89,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/TipoPersonagens/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTipoPersonagem(Guid id)
         {

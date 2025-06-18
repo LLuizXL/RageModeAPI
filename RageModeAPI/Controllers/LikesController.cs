@@ -47,7 +47,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Likes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutLikes(Guid id, Likes likes)
         {

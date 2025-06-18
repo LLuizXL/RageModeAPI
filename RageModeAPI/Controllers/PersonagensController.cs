@@ -58,7 +58,7 @@ namespace RageModeAPI.Controllers
 
         // PUT: api/Personagens/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> PutPersonagem(Guid id, Personagem personagem)
         {
@@ -90,7 +90,7 @@ namespace RageModeAPI.Controllers
 
         // POST: api/Personagens
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<ActionResult<Personagem>> PostPersonagem(Personagem personagem)
         {
@@ -103,7 +103,7 @@ namespace RageModeAPI.Controllers
         }
 
         // DELETE: api/Personagens/5
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePersonagem(Guid id)
         {
@@ -124,7 +124,7 @@ namespace RageModeAPI.Controllers
             return _context.Personagens.Any(e => e.PersonagemId == id);
         }
 
-        [Authorize(Roles = "admin")]
+        [Authorize(Roles = "Admin")]
         [HttpPost("UploadCharacterPicture")]
         public async Task<IActionResult> UploadCharacterPicture(IFormFile file, Guid PersonagemId)
         {
