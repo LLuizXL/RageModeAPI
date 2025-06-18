@@ -298,16 +298,6 @@ namespace RageModeAPI.Controllers
                 return Forbid();
             }
 
-            // Remove comentários do usuário
-            var comentarios = _context.Comentarios.Where(c => c.UsuarioId == id);
-            _context.Comentarios.RemoveRange(comentarios);
-
-            // Remove posts do usuário
-            var posts = _context.Posts.Where(p => p.UsuarioId == id);
-            _context.Posts.RemoveRange(posts);
-
-            // Se houver outras entidades relacionadas, remova aqui (ex: likes, personagens, etc.)
-
             _context.Usuarios.Remove(usuario);
             await _context.SaveChangesAsync();
 

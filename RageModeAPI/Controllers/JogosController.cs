@@ -108,10 +108,6 @@ namespace RageModeAPI.Controllers
                 return NotFound();
             }
 
-            // Remove todos os personagens associados ao jogo
-            var personagens = _context.Personagens.Where(p => p.JogoId == id);
-            _context.Personagens.RemoveRange(personagens);
-
             _context.Jogos.Remove(jogo);
             await _context.SaveChangesAsync();
 

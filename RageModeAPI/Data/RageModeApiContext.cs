@@ -75,10 +75,10 @@ namespace RageModeAPI.Data
 
             // Configuração para Likes -> Usuarios
             modelBuilder.Entity<Likes>()
-                .HasOne(l => l.Usuarios) // NOME CORRETO: l.Usuarios (como na sua model Likes)
-                .WithMany(u => u.Likes)
-                .HasForeignKey(l => l.UsuariosId) // NOME CORRETO: l.UsuariosId (como na sua model Likes)
-                .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
+     .HasOne(l => l.Usuarios)
+     .WithMany(u => u.Likes)
+     .HasForeignKey(l => l.UsuariosId)
+     .OnDelete(DeleteBehavior.Cascade); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
 
             // Configuração para Likes -> Post
             modelBuilder.Entity<Likes>()
@@ -89,10 +89,10 @@ namespace RageModeAPI.Data
 
             // Configuração para Comentarios -> Usuario
             modelBuilder.Entity<Comentarios>()
-                .HasOne(c => c.Usuario) // NOME CORRETO: c.Usuario (como na sua model Comentarios)
-                .WithMany(u => u.Comentarios)
-                .HasForeignKey(c => c.UsuarioId) // NOME CORRETO: c.UsuarioId (como na sua model Comentarios)
-                .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
+      .HasOne(c => c.Usuario)
+      .WithMany(u => u.Comentarios)
+      .HasForeignKey(c => c.UsuarioId)
+      .OnDelete(DeleteBehavior.Cascade);
 
             // Configuração para Comentarios -> Post
             modelBuilder.Entity<Comentarios>()
@@ -110,18 +110,18 @@ namespace RageModeAPI.Data
 
             // Configuração para Personagem -> Jogos
             modelBuilder.Entity<Personagem>()
-                .HasOne(p => p.Jogo)
-                .WithMany(j => j.Personagens) // Assumindo ICollection<Personagem> Personagens em Jogos
-                .HasForeignKey(p => p.JogoId)
-                .OnDelete(DeleteBehavior.Restrict);
+          .HasOne(p => p.Jogo)
+          .WithMany(j => j.Personagens)
+          .HasForeignKey(p => p.JogoId)
+          .OnDelete(DeleteBehavior.Cascade);
 
-            // Adicione configurações para outras entidades, se houverem (ex: Personagem -> Jogos)
-            // Exemplo:
-            // modelBuilder.Entity<Personagem>()
-            //     .HasOne(p => p.Jogo) // Assumindo que Personagem tem uma FK para Jogos
-            //     .WithMany(j => j.Personagens) // Assumindo que Jogos tem uma coleção de Personagens
-            //     .HasForeignKey(p => p.JogoId)
-            //     .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Post>()
+    .HasOne(p => p.Usuarios)
+    .WithMany(u => u.Posts)
+    .HasForeignKey(p => p.UsuarioId)
+    .OnDelete(DeleteBehavior.Cascade);
+
+
         }
     }
 }

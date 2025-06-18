@@ -198,14 +198,6 @@ namespace RageModeAPI.Controllers
                 return Forbid("Você não tem autorização para excluir este post.");
             }
 
-            // Remove comentários associados ao post
-            var comentarios = _context.Comentarios.Where(c => c.PostId == id);
-            _context.Comentarios.RemoveRange(comentarios);
-
-            // Remove likes associados ao post
-            var likes = _context.Likes.Where(l => l.PostId == id);
-            _context.Likes.RemoveRange(likes);
-
             _context.Posts.Remove(post);
             await _context.SaveChangesAsync();
 
