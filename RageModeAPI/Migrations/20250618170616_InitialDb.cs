@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace RageModeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Inicio : Migration
+    public partial class InitialDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -98,7 +98,7 @@ namespace RageModeAPI.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -120,7 +120,7 @@ namespace RageModeAPI.Migrations
                         column: x => x.JogoId,
                         principalTable: "Jogos",
                         principalColumn: "JogosId",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_Personagens_TiposPersonagens_TipoPersonagemId",
                         column: x => x.TipoPersonagemId,
@@ -147,7 +147,7 @@ namespace RageModeAPI.Migrations
                         column: x => x.UserId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -167,7 +167,7 @@ namespace RageModeAPI.Migrations
                         column: x => x.UserId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -185,13 +185,13 @@ namespace RageModeAPI.Migrations
                         column: x => x.RoleId,
                         principalTable: "AspNetRoles",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_AspNetUserRoles_Usuarios_UserId",
                         column: x => x.UserId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -249,7 +249,7 @@ namespace RageModeAPI.Migrations
                     TipoPost = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     DataPostagem = table.Column<DateTime>(type: "datetime2", nullable: false),
                     UsuarioId = table.Column<string>(type: "nvarchar(450)", nullable: true),
-                    PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PersonagemId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -259,14 +259,13 @@ namespace RageModeAPI.Migrations
                         name: "FK_Postagem_Personagens_PersonagemId",
                         column: x => x.PersonagemId,
                         principalTable: "Personagens",
-                        principalColumn: "PersonagemId",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "PersonagemId");
                     table.ForeignKey(
                         name: "FK_Postagem_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -287,13 +286,13 @@ namespace RageModeAPI.Migrations
                         column: x => x.PostId,
                         principalTable: "Postagem",
                         principalColumn: "PostId",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_Comentarios_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -319,7 +318,7 @@ namespace RageModeAPI.Migrations
                         column: x => x.UsuariosId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(

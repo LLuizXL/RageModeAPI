@@ -78,7 +78,7 @@ namespace RageModeAPI.Data
      .HasOne(l => l.Usuarios)
      .WithMany(u => u.Likes)
      .HasForeignKey(l => l.UsuariosId)
-     .OnDelete(DeleteBehavior.Cascade); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
+     .OnDelete(DeleteBehavior.Restrict); // MANTENHA RESTRICT AQUI para evitar o erro de ciclo
 
             // Configuração para Likes -> Post
             modelBuilder.Entity<Likes>()

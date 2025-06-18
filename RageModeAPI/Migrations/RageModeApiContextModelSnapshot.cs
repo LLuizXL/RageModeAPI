@@ -487,7 +487,7 @@ namespace RageModeAPI.Migrations
                     b.HasOne("RageModeAPI.Models.Usuarios", "Usuario")
                         .WithMany("Comentarios")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Post");
@@ -506,7 +506,7 @@ namespace RageModeAPI.Migrations
                     b.HasOne("RageModeAPI.Models.Usuarios", "Usuarios")
                         .WithMany("Likes")
                         .HasForeignKey("UsuariosId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Post");
@@ -519,7 +519,7 @@ namespace RageModeAPI.Migrations
                     b.HasOne("RageModeAPI.Models.Jogos", "Jogo")
                         .WithMany("Personagens")
                         .HasForeignKey("JogoId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("RageModeAPI.Models.TipoPersonagem", "TipoPersonagem")
@@ -542,7 +542,7 @@ namespace RageModeAPI.Migrations
                     b.HasOne("RageModeAPI.Models.Usuarios", "Usuarios")
                         .WithMany("Posts")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Personagem");
 
