@@ -48,6 +48,11 @@ namespace RageModeAPI.Controllers
             return jogos;
         }
 
+        private bool JogosExists(Guid id)
+        {
+            return _context.Jogos.Any(e => e.JogosId == id);
+        }
+
         // PUT: api/Jogos/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [Authorize(Roles = "Admin")]
